@@ -82,8 +82,8 @@ template<class T> struct segment_tree{
     long long maximum_val = 1e9;
     
     for(; idx_l <= idx_r; idx_l >>= 1, idx_r >>= 1){
-      if(idx_l&1) maximum_val = min(maximum_val, max_tree[idx_l++]);
-      if(!(idx_r&1)) maximum_val = min(maximum_val, max_tree[idx_r--]);
+      if(idx_l&1) maximum_val = max(maximum_val, max_tree[idx_l++]);
+      if(!(idx_r&1)) maximum_val = max(maximum_val, max_tree[idx_r--]);
     }
 
     return maximum_val;
