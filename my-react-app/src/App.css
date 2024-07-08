@@ -1,0 +1,12 @@
+body{
+  margin: 0;
+}
+
+.test{
+  width: 75%;
+  height: 600px;
+}
+
+.input-error{
+  border-color: red;
+}
