@@ -1,12 +1,11 @@
-import React, { useEffect, useRef, useState, createContext } from 'react';
-import { createChart } from 'lightweight-charts';
-import './App.css';
-import info from '../src/pages/data.json'
-import { Axios } from 'axios';
-import {useFormik} from 'formik'
-import {Form} from './pages/Form'
-import {Graph} from './pages/Graph'
-
+import React, { useEffect, useRef, useState, createContext } from "react";
+import { createChart } from "lightweight-charts";
+import "./App.css";
+import info from "../src/pages/data.json";
+import { Axios } from "axios";
+import { useFormik } from "formik";
+import { Form } from "./pages/Form";
+import { Graph } from "./pages/Graph";
 
 function App() {
   const [ticker, setTicker] = useState("");
@@ -17,8 +16,15 @@ function App() {
 
   return (
     <div className="App">
-      <Form setTicker={setTicker} setInterval={setInterval} setDataStruct={setDataStruct} isLoading={isLoading} setTemp={setTemp} setIsLoading={setIsLoading}/>
-      {!isLoading && <Graph temp={temp}/>}
+      <Form
+        setTicker={setTicker}
+        setInterval={setInterval}
+        setDataStruct={setDataStruct}
+        isLoading={isLoading}
+        setTemp={setTemp}
+        setIsLoading={setIsLoading}
+      />
+      {!isLoading && <Graph temp={temp} interval={interval} />}
       <div>{ticker}</div>
     </div>
   );
