@@ -1,5 +1,9 @@
 #include <vector>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/bind.h>
+#endif
+
 class fenwick_tree {
     std::vector<double> tree;
 
@@ -56,6 +60,14 @@ public:
         return static_cast<double>(getSum(index)) / (index + 1);
     }
 };
+
+EMSCRIPTEN_BINDINGS(fenwick_tree){
+  emscripten::class_<fenwick_tree>("fenwick_tree")
+    .constructor<std::vector<double>>()
+    .function("getSum", &fenwick_tree::getSum)
+    .function("getRangeSum", &fenwick_tree::getRangeSum)
+    .function("getAverage", &fenwick_tree::getAverage);
+}
 
 int main() {
     return 0;
