@@ -8,7 +8,7 @@ export const Graph = (props) => {
     const chartOptions = {
       layout: {
         textColor: "white",
-        background: { type: "solid", color: "black" },
+        background: { type: "solid", color: "#171b26" },
       },
     };
     const chart = createChart(chartContainerRef.current, chartOptions);
@@ -60,8 +60,9 @@ export const Graph = (props) => {
   }, []);
 
   return (
-    <div>
-      <div ref={chartContainerRef} className="test" />
+    <div className="bg-[rgba(23,27,38,255)] h-[925px] w-full flex justify-center align-center">
+      <div ref={chartContainerRef} className="h-[800px] w-3/4 pt-10 pl-5" />
+      <div className="h-full w-[500px]"></div>
     </div>
   );
 };

@@ -20,8 +20,7 @@ public:
   int num_nodes; 
 
   segment_tree(int n): num_nodes(n), sum_tree(2*n, 0), min_tree(2*n, 0), max_tree(2*n, 0){}
- 
-  /* O(nlog n), with n being the number of recorded days*/
+
   void build(vector<double>& arr){
     for(int i = num_nodes; i < 2*num_nodes; ++i){ 
       sum_tree[i] = arr[i - num_nodes];
@@ -34,8 +33,7 @@ public:
       max_tree[i] = max(max_tree[i<<1], max_tree[i<<1|1]);
     }
   }
-   
-  /* O(log n), with n being the number of recorded days*/
+
   void set(int idx, double val){ 
     idx += num_nodes;
     int temp = idx;
@@ -55,8 +53,7 @@ public:
     for(idx /= 2; idx > 0; idx /= 2){ max_tree[idx] = max(max_tree[idx<<1], max_tree[idx<<1|1]); }
   } 
   
-  /* cumulative sum from idx_l to idx_r (inclusive) */ 
-  /* O(log n), with n being the number of recorded days*/
+  /* cumulative sum from idx_l to idx_r (inclusive) */
   double cumulative_sum(int idx_l, int idx_r){
     idx_l += num_nodes, idx_r += num_nodes;
     double total_sum = 0;
@@ -69,15 +66,13 @@ public:
     return total_sum;
   }
 
-  /* average stock price from idx_l to idx_r (inclusive) */ 
-  /* O(log n), with n being the number of recorded days*/
+  /* average stock price from idx_l to idx_r (inclusive) */
   double interval_average(int idx_l, int idx_r){
     double total_sum = cumulative_sum(idx_l, idx_r);
 
     return total_sum * 1.0f / (idx_r - idx_l + 1);  
   }
- 
-  /* O(log n), with n being the number of recorded days*/
+
   double interval_minimum(int idx_l, int idx_r){
     idx_l += num_nodes, idx_r += num_nodes;
     double minimum_val = 1e9;
@@ -89,8 +84,7 @@ public:
 
     return minimum_val;
   }
-  
-  /* O(log n), with n being the number of recorded days*/
+
   double interval_maximum(int idx_l, int idx_r){
     idx_l += num_nodes, idx_r += num_nodes;
     double maximum_val = -1e9;
@@ -102,8 +96,7 @@ public:
 
     return maximum_val;
   }
-  
-  /* O(log n + m), where n is the number of recorded days, and m is the interval of variance being measured*/
+
   double interval_variance(int idx_l, int idx_r){
     double variance = 0.0;
     int n = idx_r - idx_l;
@@ -114,34 +107,31 @@ public:
 
     return (variance / n);
   }
-  
-  /* O(n), where n is the amount of days of stock price recording */
+
   vector<double> aroon_down(int idx_l, int idx_r){
     vector<double> cumulative_aroon; 
     int n = idx_r - idx_l + 1; 
     
-    idx_l += num_nodes; idx_r += num_nodes;
-
     int end = idx_l + 1;
-    double past_min = min_tree[idx_l];
-    int past_idx = end;
-    
-    while(end <= idx_r){
-      double curr_tick = min_tree[end];
-      if(curr_tick < past_min){
-        past_min = curr_tick;
-        past_idx = end;
-      }
+    double past_min = min_tree[idx_l + num_nodes];
+    int past_min_idx = 0;
 
-      double aroon_indicator = (n - (end - past_min)) * 100 / n * 1.0;
+    while(end <= idx_r){
+      int curr_min = interval_minimum(idx_l, end);
+      
+      if(curr_min != past_min){
+        past_min = curr_min;
+        past_min_idx = end;
+      } 
+      
+      double aroon_indicator = (n - (end - past_min_idx)) * 100.0 / n * 1.0; 
       cumulative_aroon.push_back(aroon_indicator);
       ++end;
     }
-
+    
     return cumulative_aroon;
   }
-  
-  /* O(n), where n is the amount of days of stock price recording */
+
   vector<double> aroon_up(int idx_l, int idx_r){
     vector<double> cumulative_aroon; 
     int n = idx_r - idx_l + 1; 
@@ -163,8 +153,6 @@ public:
       cumulative_aroon.push_back(aroon_indicator);
       ++end;
     }
-
-    return cumulative_aroon;
   }
 };
 
