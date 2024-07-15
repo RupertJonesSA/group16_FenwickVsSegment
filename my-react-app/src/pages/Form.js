@@ -4,6 +4,8 @@ import * as yup from "yup";
 import "./Form.css";
 import Axios from "axios";
 import searchIcon from './icons8-search-50.png'
+import Select from 'react-select';
+
 
 export const Form = (props) => {
   const [URL, setURL] = useState("");
@@ -81,6 +83,15 @@ export const Form = (props) => {
     onSubmit,
   });
 
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const options = [
+    { value: "intraday", label: 'Intraday' },
+    { value: "daily", label: 'Daily' },
+    { value: "weekly", label: 'Weekly' },
+    { value: "monthly", label: 'Monthly'}
+  ];
+
   console.log(errors);
 
   return (
@@ -104,22 +115,23 @@ export const Form = (props) => {
 
       <div className="flex w-[500px] content-between mb-4">
         <div className="mr-3">
-          <select
-            className="w-60 text-center rounded-full text-2xl p-1 cursor-pointer"
-            label="Interval"
-            name="interval"
-            value={values.interval}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            id="interval"
-            type="text"
-            placeholder="Select Interval"
-          >
-            <option value="intraday" className="bg-gray-500">Intraday</option>
-            <option value="daily" className="bg-gray-500">Daily</option>
-            <option value="weekly" className="bg-gray-500">Weekly</option>
-            <option value="monthly" className="bg-gray-500">Monthly</option>
-          </select>
+
+
+          <Select
+          className="w-60 text-center border-none text-2xl"
+          isSearchable={false}
+          label="Interval"
+          name="interval"
+          onBlur={handleBlur}
+          id="interval"
+          type="text"
+          placeholder="Select Interval"
+          defaultValue={values.interval}
+          onChange={[setSelectedOption, handleChange]}
+          options={options}
+        />
+
+        
         </div>
 
         <div className="">
@@ -141,7 +153,7 @@ export const Form = (props) => {
       </div>
 
       <div className="text-center">
-        <button type="submit" className="	bg-white text-2xl p-5 rounded-full">Submit</button>
+        <button type="submit" className="	bg-white text-2xl p-4 w-52 rounded-full text-gray-500 hover:text-black">Submit</button>
       </div>
     </form>
   );

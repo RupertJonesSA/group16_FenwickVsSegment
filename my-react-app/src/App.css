@@ -4,7 +4,7 @@
 
 html {
   scroll-behavior: smooth;
-  scrollbar-color: black;
+  scrollbar-color: transparent;
 }
 
 body{
