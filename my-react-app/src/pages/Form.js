@@ -96,7 +96,7 @@ export const Form = (props) => {
           placeholder="Search markets here"
         />
         <div>
-          <img src={searchIcon} draggable={false} className="absolute top-8 left-6 w-10"/>
+          <img src={searchIcon} draggable={false} className="absolute top-7 left-6 w-10"/>
         </div>
         {errors.ticker && touched.ticker && <p className="text-center text-red-700 text-2xl mb-4 font-semibold">{errors.ticker}</p>}
         {!props.isLoading && !errors.ticker ? ((props.temp.hasOwnProperty("Error Message") || props.temp.hasOwnProperty("Information")) ? (<div className="text-center text-red-700 text-2xl mb-4 font-semibold">Invalid</div>) : null) : null}
@@ -105,7 +105,7 @@ export const Form = (props) => {
       <div className="flex w-[500px] content-between mb-4">
         <div className="mr-3">
           <select
-            className="w-60 text-center rounded-lg text-2xl p-2 bg-blue-700 text-white cursor-pointer"
+            className="w-60 text-center rounded-full text-2xl p-1 cursor-pointer"
             label="Interval"
             name="interval"
             value={values.interval}
@@ -115,7 +115,7 @@ export const Form = (props) => {
             type="text"
             placeholder="Select Interval"
           >
-            <option value="intraday" className="bg-gray-500 rounded-full hover:bg-gray-500">Intraday</option>
+            <option value="intraday" className="bg-gray-500">Intraday</option>
             <option value="daily" className="bg-gray-500">Daily</option>
             <option value="weekly" className="bg-gray-500">Weekly</option>
             <option value="monthly" className="bg-gray-500">Monthly</option>

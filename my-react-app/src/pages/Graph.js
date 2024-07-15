@@ -53,6 +53,7 @@ export const Graph = (props) => {
 
     candlestickSeries.setData(data);
     chart.timeScale().fitContent();
+    
 
     return () => {
       chart.remove();

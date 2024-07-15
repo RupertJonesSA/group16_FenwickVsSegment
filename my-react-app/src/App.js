@@ -6,7 +6,9 @@ import { useFormik } from "formik";
 import { Form } from "./pages/Form";
 import { Graph } from "./pages/Graph";
 import background from "./pages/markus-spiske-XK8NeUj6Gzs-unsplash.jpg"
-import info from './pages/data.json'
+import info from './pages/data.json';
+import { animateScroll } from 'react-scroll';
+
 
 function App() {
   const [ticker, setTicker] = useState("");
@@ -17,13 +19,26 @@ function App() {
 
   let check;
 
+  animateScroll.scrollToBottom({duration: 1000, smooth: true});
+
   return (
-    <div className="font-sans">
+    <div>
 
-      <div>
-        <img src={background} draggable={false} className="relative w-full h-screen brightness-50"/>
+      <img src={background} draggable={false} className="relative w-full h-screen brightness-50"/>
 
-        <div className="absolute left-48 top-2/4">
+      <div className="flex justify-center">
+        
+        <div className="absolute top-1/4 text-white flex flex-col text-center font-extrabold">
+          <div className="text-8xl">
+            Invest <span className="italic" >Smart</span>, Trade <span className="italic">Confidently</span>
+          </div>
+
+          <div className="mt-9 text-5xl">
+            Your Path to Financial Freedom Starts Here!
+          </div>
+        </div>
+
+        <div className="absolute top-1/2">
           <Form
             setTicker={setTicker}
             setInterval={setInterval}
@@ -38,7 +53,11 @@ function App() {
       </div>
 
       <div>
-      {!isLoading ? ((!temp.hasOwnProperty("Error Message") && !temp.hasOwnProperty("Information")) ? (<Graph temp={temp} interval={interval} />) : null) : null}
+      {!isLoading ? ((!temp.hasOwnProperty("Error Message") && !temp.hasOwnProperty("Information")) ? (
+        <Graph temp={temp} interval={interval} setIsLoading={setIsLoading}/>
+
+        
+        ) : null) : null}
       </div>
 
     </div>
