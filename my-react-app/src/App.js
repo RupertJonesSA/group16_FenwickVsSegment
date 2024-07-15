@@ -21,7 +21,7 @@ function App() {
 
   let check;
 
-  animateScroll.scrollToBottom({duration: 1000, smooth: true});
+  //animateScroll.scrollToBottom({duration: 1000, smooth: true});
 
    useEffect(() => {
       initHeader();
@@ -40,7 +40,7 @@ function App() {
 
       <div className="flex justify-center">
         
-        <div className="absolute top-1/4 text-white flex flex-col text-center font-extrabold">
+        <div className="absolute top-1/4 text-white flex flex-col text-center font-extrabold select-none">
           <div className="text-8xl">
             Invest <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]" >Smart</span>, Trade <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">Confidently</span>
           </div>

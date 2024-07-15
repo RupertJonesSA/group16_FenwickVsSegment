@@ -95,7 +95,7 @@ export const Form = (props) => {
   console.log(errors);
 
   return (
-    <form onSubmit={handleSubmit} autoComplete="off" className=" w-[500px] h-40">
+    <form onSubmit={handleSubmit} autoComplete="off" className=" w-[500px] h-40 select-none">
       <div>
         <input
           className="w-full h-24 border rounded-full pl-20 text-3xl outline-0 mb-4 relative cursor-pointer hover:placeholder-black"

@@ -4,7 +4,7 @@
 
 html {
   scroll-behavior: smooth;
-  scrollbar-color: transparent;
+  scrollbar-color: rgba(102,102,103,255) rgba(66,67,67,255);
 }
 
 body{
