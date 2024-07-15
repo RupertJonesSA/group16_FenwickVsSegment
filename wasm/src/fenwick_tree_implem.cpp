@@ -10,8 +10,6 @@ class fenwick_tree
 {
     std::vector<double> tree;
     std::vector<double> squareTree;
-    std::vector<double> gains;
-    std::vector<double> losses;
 
     /* sum from arr[0] to arr[index] (inclusive) */
     /* O(log n), with n being the number of recorded days*/
@@ -77,24 +75,12 @@ public:
         // Fill the trees with zeros
         tree.resize(arr.size() + 1, 0);
         squareTree.resize(arr.size() + 1, 0);
-        gains.resize(arr.size() + 1, 0);
-        losses.resize(arr.size() + 1, 0);
 
         // Store the actual values in the trees using update()
         for (int i = 0; i < arr.size(); i++)
         {
             updateHelper(tree, i, arr[i]);
             updateHelper(squareTree, i, arr[i] * arr[i]);
-        }
-
-        // Calculate the changes in price and store in the corresponding vector
-        for (int i = 1; i < arr.size(); i++)
-        {
-            double delta = arr[i] - arr[i - 1];
-            if (delta > 0)
-                updateHelper(gains, i, delta);
-            else
-                updateHelper(losses, i, -delta);
         }
     }
 
@@ -147,32 +133,32 @@ public:
     {
         return std::sqrt(interval_variance(low, high));
     }
-
-    double interval_rsi(int low, int high)
-    {
-        double gainAverage = interval_average(gains, low, high);
-        double lossAverage = interval_average(losses, low, high);
-
-        if (lossAverage == 0)
-            return 100;
-
-        double rs = gainAverage / lossAverage;
-        std::cout << "Gain: " << gainAverage << "\n";
-        std::cout << "Loss: " << lossAverage << "\n";
-        return 100 - (100 / (1 + rs));
-    }
 };
 
-EMSCRIPTEN_BINDINGS(fenwick_tree)
+/* Calculate the rsi for an interval using fenwick trees representing gains and losses */
+/* O(log n + log m), where n is the number of gains and m is the number of losses */
+double interval_rsi_fenwick(fenwick_tree &gains, fenwick_tree &losses, int low, int high)
 {
-    emscripten::class_<fenwick_tree>("fenwick_tree")
-        .constructor<std::vector<double>>()
-        .function("update", &fenwick_tree::update)
-        .function("cumulative_sum", &fenwick_tree::cumulative_sum)
-        .function("interval_average", &fenwick_tree::interval_average)
-        .function("interval_variance", &fenwick_tree::interval_variance)
-        .function("interval_standard_deviation", &fenwick_tree::interval_standard_deviation);
+    double gainAverage = gains.interval_average(low, high);
+    double lossAverage = losses.interval_average(low, high);
+
+    if (lossAverage == 0)
+        return 100;
+
+    double rs = gainAverage / lossAverage;
+    return 100 - (100 / (1 + rs));
 }
+
+// EMSCRIPTEN_BINDINGS(fenwick_tree)
+// {
+//     emscripten::class_<fenwick_tree>("fenwick_tree")
+//         .constructor<std::vector<double>>()
+//         .function("update", &fenwick_tree::update)
+//         .function("cumulative_sum", &fenwick_tree::cumulative_sum)
+//         .function("interval_average", &fenwick_tree::interval_average)
+//         .function("interval_variance", &fenwick_tree::interval_variance)
+//         .function("interval_standard_deviation", &fenwick_tree::interval_standard_deviation);
+// }
 
 int main()
 {
