@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState, createContext } from "react";
 import { createChart } from "lightweight-charts";
-import "./App.css";
+import "./css/App.css";
 import { Axios } from "axios";
 import { useFormik } from "formik";
-import { Form } from "./pages/Form";
-import { Graph } from "./pages/Graph";
-import background from "./pages/markus-spiske-XK8NeUj6Gzs-unsplash.jpg";
-import info from "./pages/data.json";
+import { Form } from "./components/Form";
+import { Graph } from "./components/Graph";
+import background from "./components/markus-spiske-XK8NeUj6Gzs-unsplash.jpg";
+import info from "./components/data.json";
 import { animateScroll } from "react-scroll";
-import "./background.css";
+import "./css/background.css";
 import { initAnimation, initHeader, addListeners } from "./canvas";
 
 function App() {
@@ -20,7 +20,7 @@ function App() {
 
   let check;
 
-  //animateScroll.scrollToBottom({duration: 1000, smooth: true});
+  animateScroll.scrollToBottom({duration: 1000, smooth: true});
 
   useEffect(() => {
     initHeader();
