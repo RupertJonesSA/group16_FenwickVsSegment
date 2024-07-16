@@ -4,6 +4,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
+#include <emscripten/emscripten.h>
 #endif
 
 using std::vector;
@@ -168,6 +169,41 @@ public:
   }
 };
 
+/* O(nlog n + mlog n), where n is the number of recording days and m is the amount of 
+* days in the interval*/
+extern "C"{
+  EMSCRIPTEN_KEEPALIVE
+  double compute_rsi(double* prices, int idx_l, int idx_r, int n){
+    vector<double> gains(n - 1);
+    vector<double> losses(n - 1);
+      
+    for(int i = 0; i < n - 1; ++i){
+      double diff = prices[i+1] - prices[i];   
+      if(diff < 0){
+        losses.push_back(-diff);
+        gains.push_back(0);
+      }else if(diff > 0){
+        losses.push_back(0);
+        gains.push_back(diff);
+      }else{
+        losses.push_back(0);
+        gains.push_back(0);
+      }
+    }
+
+    segment_tree gains_tree(gains.size());
+    segment_tree losses_tree(losses.size());
+    gains_tree.build(gains);
+    losses_tree.build(losses);
+    
+    double average_gains = gains_tree.interval_average(idx_l, idx_r);
+    double average_losses = losses_tree.interval_average(idx_l, idx_r);
+    double rsi = 100.0 - (100.0 / 1 + (average_gains / average_losses));
+      
+    return rsi;  
+  }
+}
+
 EMSCRIPTEN_BINDINGS(segment_tree){
   emscripten::class_<segment_tree>("segment_tree")
     .constructor<int>()
@@ -176,10 +212,10 @@ EMSCRIPTEN_BINDINGS(segment_tree){
     .function("cummulative_sum", &segment_tree::cumulative_sum)
     .function("interval_average", &segment_tree::interval_average)
     .function("interval_minimum", &segment_tree::interval_minimum)
-    .function("interval_maximum", &segment_tree::interval_maximum);
-    .function("interval_variance", &segment_tree::interval_variance);
-    .function("aroon_bullish", &segment_tree::aroon_bullish);
-    .function("aroon_bearish", &segment_tree:aroon_bearish);
+    .function("interval_maximum", &segment_tree::interval_maximum)
+    .function("interval_variance", &segment_tree::interval_variance)
+    .function("aroon_up", &segment_tree::aroon_up)
+    .function("aroon_down", &segment_tree::aroon_down);
 }
 
 int main(){

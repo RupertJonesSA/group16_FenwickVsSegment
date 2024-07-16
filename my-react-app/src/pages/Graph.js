@@ -54,7 +54,6 @@ export const Graph = (props) => {
 
     candlestickSeries.setData(data);
     chart.timeScale().fitContent();
-    
 
     return () => {
       chart.remove();
@@ -68,23 +67,23 @@ export const Graph = (props) => {
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Cumulative Sum
           <p className="text-white text-3xl pt-2">$172.32</p>
-          </div>
+        </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Cumulative Average
           <p className="text-white text-3xl pt-2">$179.94</p>
-          </div>
+        </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Variance
           <p className="text-white text-3xl pt-2">$180.53</p>
-          </div>
+        </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Secant Line
           <p className="text-white text-3xl pt-2">y = 2.5x + 176.52</p>
-          </div>
+        </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Time Taken
           <p className="text-white text-3xl pt-2">1.2 ms</p>
-          </div>
+        </div>
       </div>
     </div>
   );

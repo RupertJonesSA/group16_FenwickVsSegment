@@ -1,26 +1,33 @@
-import { TweenLite, Circ } from 'gsap';
+import { TweenLite, Circ } from "gsap";
 
-let width, height, largeHeader, canvas, ctx, points, target, animateHeader = true;
+let width,
+  height,
+  largeHeader,
+  canvas,
+  ctx,
+  points,
+  target,
+  animateHeader = true;
 
 export function initHeader() {
   width = window.innerWidth;
   height = window.innerHeight;
   target = { x: width / 2, y: height / 2 };
 
-  largeHeader = document.getElementById('large-header');
-  largeHeader.style.height = height + 'px';
+  largeHeader = document.getElementById("large-header");
+  largeHeader.style.height = height + "px";
 
-  canvas = document.getElementById('demo-canvas');
+  canvas = document.getElementById("demo-canvas");
   canvas.width = width;
   canvas.height = height;
-  ctx = canvas.getContext('2d');
+  ctx = canvas.getContext("2d");
 
   // create points
   points = [];
   for (let x = 0; x < width; x = x + width / 20) {
     for (let y = 0; y < height; y = y + height / 20) {
-      let px = x + Math.random() * width / 20;
-      let py = y + Math.random() * height / 20;
+      let px = x + (Math.random() * width) / 20;
+      let py = y + (Math.random() * height) / 20;
       let p = { x: px, originX: px, y: py, originY: py };
       points.push(p);
     }
@@ -58,18 +65,18 @@ export function initHeader() {
 
   // assign a circle to each point
   for (let i in points) {
-    let c = new Circle(points[i], 3 + Math.random() * 3, 'rgba(255,255,255,0.8)');
+    let c = new Circle(points[i], 3 + Math.random() * 3, "rgba(255,255,255,1)");
     points[i].circle = c;
   }
 }
 
 // Event handling
 export function addListeners() {
-  if (!('ontouchstart' in window)) {
-    window.addEventListener('mousemove', mouseMove);
+  if (!("ontouchstart" in window)) {
+    window.addEventListener("mousemove", mouseMove);
   }
-  window.addEventListener('scroll', scrollCheck);
-  window.addEventListener('resize', resize);
+  window.addEventListener("scroll", scrollCheck);
+  window.addEventListener("resize", resize);
 }
 
 function mouseMove(e) {
@@ -79,8 +86,12 @@ function mouseMove(e) {
     posx = e.pageX;
     posy = e.pageY;
   } else if (e.clientX || e.clientY) {
-    posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-    posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    posx =
+      e.clientX +
+      document.body.scrollLeft +
+      document.documentElement.scrollLeft;
+    posy =
+      e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
   }
   target.x = posx;
   target.y = posy;
@@ -94,7 +105,7 @@ function scrollCheck() {
 function resize() {
   width = window.innerWidth;
   height = window.innerHeight;
-  largeHeader.style.height = height + 'px';
+  largeHeader.style.height = height + "px";
   canvas.width = width;
   canvas.height = height;
 }
@@ -151,7 +162,7 @@ function drawLines(p) {
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
     ctx.lineTo(p.closest[i].x, p.closest[i].y);
-    ctx.strokeStyle = 'rgba(255,255,255,' + p.active + ')';
+    ctx.strokeStyle = "rgba(255,255,255," + p.active + ")";
     ctx.stroke();
   }
 }
@@ -170,7 +181,7 @@ function Circle(pos, rad, color) {
     if (!_this.active) return;
     ctx.beginPath();
     ctx.arc(_this.pos.x, _this.pos.y, _this.radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'rgba(255,255,255,' + _this.active + ')';
+    ctx.fillStyle = "rgba(255,255,255," + _this.active + ")";
     ctx.fill();
   };
 }

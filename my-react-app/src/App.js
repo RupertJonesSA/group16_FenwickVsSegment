@@ -5,12 +5,11 @@ import { Axios } from "axios";
 import { useFormik } from "formik";
 import { Form } from "./pages/Form";
 import { Graph } from "./pages/Graph";
-import background from "./pages/markus-spiske-XK8NeUj6Gzs-unsplash.jpg"
-import info from './pages/data.json';
-import { animateScroll } from 'react-scroll';
+import background from "./pages/markus-spiske-XK8NeUj6Gzs-unsplash.jpg";
+import info from "./pages/data.json";
+import { animateScroll } from "react-scroll";
 import "./background.css";
-import { initAnimation, initHeader, addListeners } from './canvas';
-
+import { initAnimation, initHeader, addListeners } from "./canvas";
 
 function App() {
   const [ticker, setTicker] = useState("");
@@ -23,26 +22,29 @@ function App() {
 
   //animateScroll.scrollToBottom({duration: 1000, smooth: true});
 
-   useEffect(() => {
-      initHeader();
-      initAnimation();
-      addListeners();
-    }, []);
+  useEffect(() => {
+    initHeader();
+    initAnimation();
+    addListeners();
+  }, []);
 
   return (
     <div>
-      
-
-    <div id="large-header" className="large-header">
-      <canvas id="demo-canvas"></canvas>
-    </div>
-  
+      <div id="large-header" className="large-header">
+        <canvas id="demo-canvas"></canvas>
+      </div>
 
       <div className="flex justify-center">
-        
         <div className="absolute top-1/4 text-white flex flex-col text-center font-extrabold select-none">
           <div className="text-8xl">
-            Invest <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]" >Smart</span>, Trade <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">Confidently</span>
+            Invest{" "}
+            <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+              Smart
+            </span>
+            , Trade{" "}
+            <span className="italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+              Confidently
+            </span>
           </div>
 
           <div className="mt-9 text-5xl">
@@ -61,7 +63,6 @@ function App() {
             temp={temp}
           />
         </div>
-
       </div>
 
       {/*<div>
@@ -72,10 +73,13 @@ function App() {
         ) : null) : null}
       </div>*/}
 
-
-
-    <Graph temp={temp} interval={interval} setIsLoading={setIsLoading}/>
-
+      <Graph
+        temp={temp}
+        dataStruct={dataStruct}
+        setDataStruct={setDataStruct}
+        interval={interval}
+        setIsLoading={setIsLoading}
+      />
     </div>
   );
 }

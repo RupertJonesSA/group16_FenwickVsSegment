@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 import * as yup from "yup";
 import "./Form.css";
 import Axios from "axios";
-import searchIcon from './icons8-search-50.png'
-import Select from 'react-select';
-
+import searchIcon from "./icons8-search-50.png";
+import Select from "react-select";
 
 export const Form = (props) => {
   const [URL, setURL] = useState("");
@@ -85,20 +84,29 @@ export const Form = (props) => {
 
   const [selectedOption, setSelectedOption] = useState(null);
 
-  const options = [
-    { value: "intraday", label: 'Intraday' },
-    { value: "daily", label: 'Daily' },
-    { value: "weekly", label: 'Weekly' },
-    { value: "monthly", label: 'Monthly'}
+  const intervalOptions = [
+    { value: "intraday", label: "Intraday" },
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
+  ];
+
+  const structOptions = [
+    { value: "fenwick", label: "Fenwick Tree" },
+    { value: "segment", label: "Segment Tree" },
   ];
 
   console.log(errors);
 
   return (
-    <form onSubmit={handleSubmit} autoComplete="off" className=" w-[500px] h-40 select-none">
+    <form
+      onSubmit={handleSubmit}
+      autoComplete="off"
+      className=" w-[500px] h-40 select-none"
+    >
       <div>
         <input
-          className="w-full h-24 border rounded-full pl-20 text-3xl outline-0 mb-4 relative cursor-pointer hover:placeholder-black"
+          className="w-full h-16 border rounded-lg pl-20 text-3xl outline-0 mb-4 relative cursor-pointer hover:placeholder-black"
           value={values.ticker}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -107,36 +115,45 @@ export const Form = (props) => {
           placeholder="Search markets here"
         />
         <div>
-          <img src={searchIcon} draggable={false} className="absolute top-7 left-6 w-10"/>
+          <img
+            src={searchIcon}
+            draggable={false}
+            className="absolute top-3 left-4 w-10"
+          />
         </div>
-        {errors.ticker && touched.ticker && <p className="text-center text-red-700 text-2xl mb-4 font-semibold">{errors.ticker}</p>}
-        {!props.isLoading && !errors.ticker ? ((props.temp.hasOwnProperty("Error Message") || props.temp.hasOwnProperty("Information")) ? (<div className="text-center text-red-700 text-2xl mb-4 font-semibold">Invalid</div>) : null) : null}
+        {errors.ticker && touched.ticker && (
+          <p className="text-center text-red-700 text-2xl mb-4 font-semibold">
+            {errors.ticker}
+          </p>
+        )}
+        {!props.isLoading && !errors.ticker ? (
+          props.temp.hasOwnProperty("Error Message") ||
+          props.temp.hasOwnProperty("Information") ? (
+            <div className="text-center text-red-700 text-2xl mb-4 font-semibold">
+              Invalid
+            </div>
+          ) : null
+        ) : null}
       </div>
 
       <div className="flex w-[500px] content-between mb-4">
         <div className="mr-3">
-
-
           <Select
-          className="w-60 text-center border-none text-2xl"
-          isSearchable={false}
-          label="Interval"
-          name="interval"
-          onBlur={handleBlur}
-          id="interval"
-          type="text"
-          placeholder="Select Interval"
-          defaultValue={values.interval}
-          onChange={[setSelectedOption, handleChange]}
-          options={options}
-        />
-
-        
+            className="w-60 text-center rounded-lg text-2xl p-1 cursor-pointer"
+            label="Interval"
+            name="interval"
+            onBlur={handleBlur}
+            id="interval"
+            type="text"
+            placeholder="Interval"
+            defaultValue={values.interval}
+            onChange={[setSelectedOption, handleChange]}
+            options={intervalOptions}
+          />
         </div>
-
-        <div className="">
-            <select
-          className="w-60 text-center rounded-full text-2xl p-1 cursor-pointer"
+        <div>
+          <Select
+            className="w-60 text-center rounded-lg text-2xl p-1 cursor-pointer"
             label="dataStruct"
             name="dataStruct"
             value={values.dataStruct}
@@ -144,16 +161,19 @@ export const Form = (props) => {
             onBlur={handleBlur}
             id="dataStruct"
             type="text"
-            placeholder="Select Data Structure"
-          >
-            <option value="fenwick">Fenwick Tree</option>
-            <option value="segment">Segment Tree</option>
-          </select>
+            placeholder="Data Structure"
+            options={structOptions}
+          />
         </div>
       </div>
 
       <div className="text-center">
-        <button type="submit" className="	bg-white text-2xl p-4 w-52 rounded-full text-gray-500 hover:text-black">Submit</button>
+        <button
+          type="submit"
+          className="	bg-white text-2xl p-4 w-52 rounded-lg text-gray-500 hover:text-black"
+        >
+          Submit
+        </button>
       </div>
     </form>
   );
