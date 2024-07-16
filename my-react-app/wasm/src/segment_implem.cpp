@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
@@ -104,7 +105,7 @@ public:
     return maximum_val;
   }
   
-  /* O(log n + m), where n is the number of recorded days, and m is the interval of variance being measured*/
+  /* O(log n + m), where n is the number of recorded days, and m is the number of days in the interval*/
   double interval_variance(int idx_l, int idx_r){
     double variance = 0.0;
     int n = idx_r - idx_l;
@@ -115,6 +116,11 @@ public:
 
     return (variance / n);
   }
+ 
+  /* O(log n + m), where n is the number of recorded days and m is number of days in the interval */
+  double interval_standard_deviation(int idx_l, int idx_r){
+    return std::sqrt(interval_variance(idx_l, idx_r));
+  } 
   
   /* O(n), where n is the amount of days of stock price recording */
   vector<double> aroon_down(int idx_l, int idx_r){
