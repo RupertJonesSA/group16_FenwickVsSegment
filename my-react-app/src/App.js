@@ -7,7 +7,6 @@ import { Form } from "./components/Form";
 import { Graph } from "./components/Graph";
 import background from "./components/markus-spiske-XK8NeUj6Gzs-unsplash.jpg";
 import info from "./components/data.json";
-import { animateScroll } from "react-scroll";
 import "./css/background.css";
 import { initAnimation, initHeader, addListeners } from "./canvas";
 
@@ -19,8 +18,6 @@ function App() {
   const [temp, setTemp] = useState(null);
 
   let check;
-
-  animateScroll.scrollToBottom({duration: 1000, smooth: true});
 
   useEffect(() => {
     initHeader();
@@ -65,21 +62,21 @@ function App() {
         </div>
       </div>
 
-      {/*<div>
+      <div>
       {!isLoading ? ((!temp.hasOwnProperty("Error Message") && !temp.hasOwnProperty("Information")) ? (
         <Graph temp={temp} interval={interval} setIsLoading={setIsLoading}/>
         
         
         ) : null) : null}
-      </div>*/}
+      </div>
 
-      <Graph
+      {/*<Graph
         temp={temp}
         dataStruct={dataStruct}
         setDataStruct={setDataStruct}
         interval={interval}
         setIsLoading={setIsLoading}
-      />
+      />*/}
     </div>
   );
 }

@@ -2,12 +2,19 @@ import React, { useEffect, useRef, useState, createContext } from "react";
 import { createChart } from "lightweight-charts";
 import info from "./data.json";
 import "path-browserify";
+import { animateScroll } from "react-scroll";
+import { SMA, EMA, RSI, BollingerBands } from 'technicalindicators';
 
 export const Graph = (props) => {
   const chartContainerRef = useRef();
   const [pricesArray, setPricesArray] = useState([]);
 
+
+
   useEffect(() => {
+
+    animateScroll.scrollToBottom({duration: 1000, smooth: true});
+
     const chartOptions = {
       layout: {
         textColor: "white",
@@ -23,9 +30,9 @@ export const Graph = (props) => {
       wickDownColor: "#ef5350",
     });
 
-    let timeSeries = info["Time Series (5min)"];
+    //let timeSeries = info["Time Series (5min)"];
 
-    /*let timeSeries;
+    let timeSeries;
     if (props.interval === "intraday") {
       timeSeries = props.temp["Time Series (5min)"];
     } else if (props.interval === "daily") {
@@ -34,7 +41,7 @@ export const Graph = (props) => {
       timeSeries = props.temp["Weekly Time Series"];
     } else if (props.interval === "monthly") {
       timeSeries = props.temp["Monthly Time Series"];
-    }*/
+    }
 
     const transformedData = Object.keys(timeSeries).map((key) => {
       const {
@@ -56,21 +63,49 @@ export const Graph = (props) => {
     const data = transformedData.sort((a, b) => a.time - b.time);
     setPricesArray(data);
 
-    // Array to hold all closing prices in ascending order (relative to date)
-    const closingData = [];
-    for (const prices of transformedData) {
-      closingData.push(prices.close);
-    }
+    const closingData = data.map((d) => d.close);
 
-    setPricesArray(closingData);
+    const period = 20;
+    const stdDev = 2;
+    const bb = BollingerBands.calculate({
+      period: period,
+      values: closingData,
+      stdDev: stdDev,
+    });
+
+    const upperBandData = bb.map((band, index) => ({
+      time: data[index + period - 1].time,
+      value: band.upper,
+    }));
+
+    const middleBandData = bb.map((band, index) => ({
+      time: data[index + period - 1].time,
+      value: band.middle,
+    }));
+
+    const lowerBandData = bb.map((band, index) => ({
+      time: data[index + period - 1].time,
+      value: band.lower,
+    }));
 
     candlestickSeries.setData(data);
+
+    const upperBandSeries = chart.addLineSeries({ color: "red" });
+    upperBandSeries.setData(upperBandData);
+
+    const middleBandSeries = chart.addLineSeries({ color: "blue" });
+    middleBandSeries.setData(middleBandData);
+
+    const lowerBandSeries = chart.addLineSeries({ color: "green" });
+    lowerBandSeries.setData(lowerBandData);
+
     chart.timeScale().fitContent();
+
 
     return () => {
       chart.remove();
     };
-  }, []);
+  }, [props.temp]);
 
   // Beginning of wasm C++ segment tree import
   const [result, setResult] = useState(null);

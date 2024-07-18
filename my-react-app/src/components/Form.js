@@ -9,6 +9,9 @@ export const Form = (props) => {
   const [URL, setURL] = useState("");
   const apiKey = "KL2D3BYFRWKSUUHF";
 
+  const [selectedOption1, setSelectedOption1] = useState(null);
+  const [selectedOption2, setSelectedOption2] = useState(null);
+
   const fetchData = () => {
     Axios.get(URL)
       .then((res) => {
@@ -32,22 +35,22 @@ export const Form = (props) => {
 
   const onSubmit = (values, actions) => {
     props.setTicker(values.ticker);
-    props.setInterval(values.interval);
-    props.setDataStruct(values.dataStruct);
+    props.setInterval(selectedOption1?.value);
+    props.setDataStruct(selectedOption2?.value);
 
-    if (values.interval === "intraday") {
+    if (selectedOption1?.value === "intraday") {
       setURL(
         `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${values.ticker}&interval=5min&outputsize=full&apikey=${apiKey}`,
       );
-    } else if (values.interval === "daily") {
+    } else if (selectedOption1?.value === "daily") {
       setURL(
         `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${values.ticker}&apikey=${apiKey}`,
       );
-    } else if (values.interval === "weekly") {
+    } else if (selectedOption1?.value === "weekly") {
       setURL(
         `https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY&symbol=${values.ticker}&apikey=${apiKey}`,
       );
-    } else if (values.interval === "monthly") {
+    } else if (selectedOption1?.value === "monthly") {
       setURL(
         `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=${values.ticker}&apikey=${apiKey}`,
       );
@@ -80,9 +83,6 @@ export const Form = (props) => {
     validationSchema: basicSchema,
     onSubmit,
   });
-
-  const [selectedOption1, setSelectedOption1] = useState(null);
-  const [selectedOption2, setSelectedOption2] = useState(null);
 
 
   const intervalOptions = [
@@ -147,7 +147,7 @@ export const Form = (props) => {
             type="text"
             placeholder="Interval"
             defaultValue={values.interval}
-            onChange={[setSelectedOption1, handleChange]}
+            onChange={setSelectedOption1}
             options={intervalOptions}
           />
         </div>
@@ -159,7 +159,7 @@ export const Form = (props) => {
             label="dataStruct"
             name="dataStruct"
             defaultValue={values.dataStruct}
-            onChange={[setSelectedOption2, handleChange]}
+            onChange={setSelectedOption2}
             onBlur={handleBlur}
             id="dataStruct"
             type="text"
@@ -168,6 +168,8 @@ export const Form = (props) => {
           />
         </div>
       </div>
+
+      {console.log(selectedOption1?.value)}
 
       <div className="text-center">
         <button
