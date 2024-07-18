@@ -90,13 +90,13 @@ export const Graph = (props) => {
 
     candlestickSeries.setData(data);
 
-    const upperBandSeries = chart.addLineSeries({ color: "red" });
+    const upperBandSeries = chart.addLineSeries({ color: "rgba(255, 0, 0, 0.4)" });
     upperBandSeries.setData(upperBandData);
 
-    const middleBandSeries = chart.addLineSeries({ color: "blue" });
+    const middleBandSeries = chart.addLineSeries({ color: "rgba(0, 0, 255, 0.4)" });
     middleBandSeries.setData(middleBandData);
 
-    const lowerBandSeries = chart.addLineSeries({ color: "green" });
+    const lowerBandSeries = chart.addLineSeries({ color: "rgba(0, 255, 0, 0.4)" });
     lowerBandSeries.setData(lowerBandData);
 
     chart.timeScale().fitContent();
