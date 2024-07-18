@@ -10,9 +10,10 @@ class fenwick_tree
 {
     std::vector<double> tree;
     std::vector<double> squareTree;
+    int size; // Size of the original array
 
     /* sum from arr[0] to arr[index] (inclusive) */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double getSum(const std::vector<double> &tree, int index)
     {
         double sum = 0;
@@ -26,7 +27,7 @@ class fenwick_tree
     }
 
     /* average from arr[0] to arr[index] (inclusive) */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double getAverage(const std::vector<double> &tree, int index)
     {
         if (index < 0)
@@ -70,7 +71,7 @@ class fenwick_tree
     }
 
 public:
-    fenwick_tree(const std::vector<double> &arr)
+    fenwick_tree(const std::vector<double> &arr) : size(arr.size())
     {
         // Fill the trees with zeros
         tree.resize(arr.size() + 1, 0);
@@ -85,7 +86,7 @@ public:
     }
 
     /* update fenwick tree to correspond with original array after update to element at index */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     void update(int index, double val)
     {
         double currentVal = cumulative_sum(index, index);
@@ -99,28 +100,28 @@ public:
     }
 
     /* cumulative sum from low to high (inclusive) */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double cumulative_sum(int low, int high)
     {
         return cumulative_sum(tree, low, high);
     }
 
     /* average of arr[] from index low to index high */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double interval_average(int low, int high)
     {
         return interval_average(tree, low, high);
     }
 
     /* variance of arr[] from index low to index high */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double interval_variance(int low, int high)
     {
         /*
             Formula for calculating variance:
             (sum(x_i * x_i) - (sum(x_i) * sum(x_i) / n)) / n
         */
-        double n = (high - low + 1) * 1.0; // Size of the dataset
+        double n = high - low + 1; // Size of the dataset
         double sum = cumulative_sum(tree, low, high);
         double squareSum = cumulative_sum(squareTree, low, high);
 
@@ -128,10 +129,46 @@ public:
     }
 
     /* standard deviation */
-    /* O(log n), with n being the number of recorded days*/
+    /* O(log n), with n being the number of recorded days */
     double interval_standard_deviation(int low, int high)
     {
         return std::sqrt(interval_variance(low, high));
+    }
+
+    /* O(plog n), where p is the length of the period and n is the number of recorded days */
+    double aroon_up(int period)
+    {
+        double max = -1e9;
+        int maxIndex = -1;
+        for (int i = size - 25 * period; i < 25; ++i)
+        {
+            double currentVal = cumulative_sum(i, i);
+            if (max < currentVal)
+            {
+                max = currentVal;
+                maxIndex = i;
+            }
+        }
+        double num_periods_since = (size - maxIndex) / (double)period;
+        return 100.0 * (25.0 - size - num_periods_since) / 25.0;
+    }
+
+    /* O(plog n), where p is the length of the period and n is the number of recorded days */
+    double aroon_down(int period)
+    {
+        double min = 1e9;
+        int minIndex = -1;
+        for (int i = size - 25 * period; i < 25; ++i)
+        {
+            double currentVal = cumulative_sum(i, i);
+            if (min > currentVal)
+            {
+                min = currentVal;
+                minIndex = i;
+            }
+        }
+        double num_periods_since = (size - minIndex) / (double)period;
+        return 100.0 * (25.0 - size - num_periods_since) / 25.0;
     }
 };
 
