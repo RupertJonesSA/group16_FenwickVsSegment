@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState, createContext } from "react";
 import { createChart } from "lightweight-charts";
 import info from "./data.json";
+import "path-browserify";
 
 export const Graph = (props) => {
   const chartContainerRef = useRef();
+  const [pricesArray, setPricesArray] = useState([]);
 
   useEffect(() => {
     const chartOptions = {
@@ -22,7 +24,6 @@ export const Graph = (props) => {
     });
 
     let timeSeries = info["Time Series (5min)"];
-
 
     /*let timeSeries;
     if (props.interval === "intraday") {
@@ -53,6 +54,15 @@ export const Graph = (props) => {
     });
 
     const data = transformedData.sort((a, b) => a.time - b.time);
+    setPricesArray(data);
+
+    // Array to hold all closing prices in ascending order (relative to date)
+    const closingData = [];
+    for (const prices of transformedData) {
+      closingData.push(prices.close);
+    }
+
+    setPricesArray(closingData);
 
     candlestickSeries.setData(data);
     chart.timeScale().fitContent();
@@ -62,10 +72,50 @@ export const Graph = (props) => {
     };
   }, []);
 
+  // Beginning of wasm C++ segment tree import
+  const [result, setResult] = useState(null);
+  const param1Ref = useRef(null);
+  const param2Ref = useRef(null);
+
+  const wasmModule = require("../react-wasm/build/segment_implem.js");
+
+  const calculateRSI = () => {
+    // Load wasmModule from js file
+    wasmModule.default().then((instance) => {
+      // Set up number of bytes required for prices array
+      const numBytes = pricesArray.length * pricesArray.BYTES_PER_ELEMENT;
+      const pricesArrayPtr = instance._malloc(numBytes); // allocate memory
+
+      instance.HEAPF64.set(
+        pricesArray,
+        pricesArrayPtr / pricesArray.BYTES_PER_ELEMENT,
+      );
+
+      const param1 = parseInt(param1Ref.current.value);
+      const param2 = parseInt(param2Ref.current.value);
+      // access stand-alone functions via ccall
+      const compute_rsi = instance.ccall(
+        "compute_rsi",
+        "number",
+        ["number", "number", "number", "number"],
+        [pricesArrayPtr, param1, param2, pricesArray.length],
+      );
+
+      setResult(compute_rsi);
+
+      instance._free(pricesArrayPtr);
+    });
+  };
+
   return (
     <div className="bg-[rgba(0,7,21,255)] h-[925px] w-full flex justify-around align-center">
       <div ref={chartContainerRef} className="h-[800px] w-3/4 pt-10 pl-5" />
       <div className="flex flex-col mt-10 h-[800px] justify-around gap-4 text-[rgba(94,103,118,255)] text-center text-2xl font-semibold">
+        <p>{pricesArray.length}</p>
+        <input type="number" ref={param1Ref} />
+        <input type="number" ref={param2Ref} />
+        <button onClick={() => calculateRSI()}>Calculate</button>
+        <p>Result is: {result}</p>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Cumulative Sum
           <p className="text-white text-3xl pt-2">$172.32</p>

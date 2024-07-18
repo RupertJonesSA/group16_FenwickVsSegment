@@ -22,7 +22,7 @@ public:
   int num_nodes; 
 
   segment_tree(int n): num_nodes(n), sum_tree(2*n, 0), min_tree(2*n, 0), max_tree(2*n, 0){}
- 
+  
   /* O(nlog n), with n being the number of recorded days*/
   void build(vector<double>& arr){
     for(int i = num_nodes; i < 2*num_nodes; ++i){ 
@@ -181,8 +181,8 @@ extern "C"{
   EMSCRIPTEN_KEEPALIVE
   double compute_rsi(double* prices, int idx_l, int idx_r, int n){
     vector<double> gains(n - 1);
-    vector<double> losses(n - 1);
-      
+    vector<double> losses(n - 1);  
+
     for(int i = 0; i < n - 1; ++i){
       double diff = prices[i+1] - prices[i];   
       if(diff < 0){
@@ -202,10 +202,12 @@ extern "C"{
     gains_tree.build(gains);
     losses_tree.build(losses);
     
+    return gains_tree.getRandom();
+
     double average_gains = gains_tree.interval_average(idx_l, idx_r);
     double average_losses = losses_tree.interval_average(idx_l, idx_r);
     double rsi = 100.0 - (100.0 / 1 + (average_gains / average_losses));
-      
+    
     return rsi;  
   }
 }
