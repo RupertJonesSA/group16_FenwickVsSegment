@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
@@ -108,7 +109,7 @@ public:
   /* O(log n + m), where n is the number of recorded days, and m is the number of days in the interval*/
   double interval_variance(int idx_l, int idx_r){
     double variance = 0.0;
-    int n = idx_r - idx_l;
+    int n = idx_r - idx_l + 1;
     double mean = interval_average(idx_l, idx_r);
     idx_l += num_nodes; idx_r += num_nodes;
     
@@ -182,18 +183,18 @@ extern "C"{
   double compute_rsi(double* prices, int idx_l, int idx_r, int n){
     vector<double> gains(n - 1);
     vector<double> losses(n - 1);  
-
+    
     for(int i = 0; i < n - 1; ++i){
-      double diff = prices[i+1] - prices[i];   
+      double diff = prices[i+1] - prices[i];
       if(diff < 0){
-        losses.push_back(-diff);
-        gains.push_back(0);
+        losses[i] = -diff;
+        gains[i] = 0;
       }else if(diff > 0){
-        losses.push_back(0);
-        gains.push_back(diff);
+        losses[i] = 0;
+        gains[i] = diff;
       }else{
-        losses.push_back(0);
-        gains.push_back(0);
+        losses[i] = 0;
+        gains[i] = 0;
       }
     }
 
@@ -202,11 +203,9 @@ extern "C"{
     gains_tree.build(gains);
     losses_tree.build(losses);
     
-    return gains_tree.getRandom();
-
     double average_gains = gains_tree.interval_average(idx_l, idx_r);
     double average_losses = losses_tree.interval_average(idx_l, idx_r);
-    double rsi = 100.0 - (100.0 / 1 + (average_gains / average_losses));
+    double rsi = average_losses ? 100.0 - (100.0 / (1 + average_gains / average_losses)) : 100.0;
     
     return rsi;  
   }

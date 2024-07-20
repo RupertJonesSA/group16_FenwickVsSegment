@@ -3,17 +3,14 @@ import { createChart } from "lightweight-charts";
 import info from "./data.json";
 import "path-browserify";
 import { animateScroll } from "react-scroll";
-import { SMA, EMA, RSI, BollingerBands } from 'technicalindicators';
+import { SMA, EMA, RSI, BollingerBands } from "technicalindicators";
 
 export const Graph = (props) => {
   const chartContainerRef = useRef();
   const [pricesArray, setPricesArray] = useState([]);
 
-
-
   useEffect(() => {
-
-    animateScroll.scrollToBottom({duration: 1000, smooth: true});
+    animateScroll.scrollToBottom({ duration: 1000, smooth: true });
 
     const chartOptions = {
       layout: {
@@ -61,9 +58,17 @@ export const Graph = (props) => {
     });
 
     const data = transformedData.sort((a, b) => a.time - b.time);
-    setPricesArray(data);
 
     const closingData = data.map((d) => d.close);
+
+    // This type of array is necessary in order to allocate bytes into memory and provide the C++
+    // code with necessary memory access. (MAKE SURE TO ALLOCATE 8 BYTES PER ELEMENT)
+    const flt64Data = new Float64Array(closingData.length);
+    for (let i = 0; i < closingData.length; ++i) {
+      flt64Data[i] = closingData[i];
+    }
+    setPricesArray(flt64Data);
+    console.log(closingData);
 
     const period = 20;
     const stdDev = 2;
@@ -90,17 +95,22 @@ export const Graph = (props) => {
 
     candlestickSeries.setData(data);
 
-    const upperBandSeries = chart.addLineSeries({ color: "rgba(255, 0, 0, 0.4)" });
+    const upperBandSeries = chart.addLineSeries({
+      color: "rgba(255, 0, 0, 0.4)",
+    });
     upperBandSeries.setData(upperBandData);
 
-    const middleBandSeries = chart.addLineSeries({ color: "rgba(0, 0, 255, 0.4)" });
+    const middleBandSeries = chart.addLineSeries({
+      color: "rgba(0, 0, 255, 0.4)",
+    });
     middleBandSeries.setData(middleBandData);
 
-    const lowerBandSeries = chart.addLineSeries({ color: "rgba(0, 255, 0, 0.4)" });
+    const lowerBandSeries = chart.addLineSeries({
+      color: "rgba(0, 255, 0, 0.4)",
+    });
     lowerBandSeries.setData(lowerBandData);
 
     chart.timeScale().fitContent();
-
 
     return () => {
       chart.remove();
@@ -128,12 +138,18 @@ export const Graph = (props) => {
 
       const param1 = parseInt(param1Ref.current.value);
       const param2 = parseInt(param2Ref.current.value);
+
       // access stand-alone functions via ccall
       const compute_rsi = instance.ccall(
         "compute_rsi",
         "number",
         ["number", "number", "number", "number"],
-        [pricesArrayPtr, param1, param2, pricesArray.length],
+        [
+          pricesArrayPtr,
+          param2, 
+          param1,
+          pricesArray.length,
+        ],
       );
 
       setResult(compute_rsi);
