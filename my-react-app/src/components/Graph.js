@@ -101,7 +101,7 @@ export const Graph = (props) => {
     upperBandSeries.setData(upperBandData);
 
     const middleBandSeries = chart.addLineSeries({
-      color: "rgba(0, 0, 255, 0.4)",
+      color: "rgba(0, 255, 255, 0.4)",
     });
     middleBandSeries.setData(middleBandData);
 
@@ -110,7 +110,10 @@ export const Graph = (props) => {
     });
     lowerBandSeries.setData(lowerBandData);
 
-    chart.timeScale().fitContent();
+    chart.timeScale().applyOptions({
+      borderColor: '#71649C',
+      barSpacing: 20,
+  });
 
     return () => {
       chart.remove();
