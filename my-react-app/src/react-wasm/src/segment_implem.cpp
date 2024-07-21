@@ -2,7 +2,6 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
@@ -123,56 +122,36 @@ public:
     return std::sqrt(interval_variance(idx_l, idx_r));
   } 
   
-  /* O(n), where n is the amount of days of stock price recording */
-  vector<double> aroon_down(int idx_l, int idx_r){
-    vector<double> cumulative_aroon; 
-    int n = idx_r - idx_l + 1; 
+  /* O(p), where p is the length of the period */
+  double aroon_down(int idx_l, int idx_r){
+    int period = idx_r - idx_l + 1; 
     
-    idx_l += num_nodes; idx_r += num_nodes;
-
-    int end = idx_l + 1;
-    double past_min = min_tree[idx_l];
-    int past_idx = end;
+    double period_min = interval_minimum(idx_l, idx_r);
+    int min_idx = 0;
     
-    while(end <= idx_r){
-      double curr_tick = min_tree[end];
-      if(curr_tick < past_min){
-        past_min = curr_tick;
-        past_idx = end;
-      }
+    for(int i = idx_l; i <= idx_r; ++i){
+      if(sum_tree[i+num_nodes] == period_min){ min_idx = i; break; }
+    } 
+    
+    int days_since_last_min = period - (min_idx + 1); // have to add one due to min_idx being zero-indexed
 
-      double aroon_indicator = (n - (end - past_min)) * 100 / n * 1.0;
-      cumulative_aroon.push_back(aroon_indicator);
-      ++end;
-    }
-
-    return cumulative_aroon;
+    return ((period * 1.0 - days_since_last_min) / period * 1.0) * 100.0;
   }
   
-  /* O(n), where n is the amount of days of stock price recording */
-  vector<double> aroon_up(int idx_l, int idx_r){
-    vector<double> cumulative_aroon; 
-    int n = idx_r - idx_l + 1; 
+  /* O(p), where p is the length of the period */
+  double aroon_up(int idx_l, int idx_r){
+    int period = idx_r - idx_l + 1; 
     
-    idx_l += num_nodes; idx_r += num_nodes;
-
-    int end = idx_l + 1;
-    double past_max = max_tree[idx_l];
-    int past_idx = end;
+    double period_max = interval_maximum(idx_l, idx_r);  
+    int max_idx = 0;
     
-    while(end <= idx_r){
-      double curr_tick = max_tree[end];
-      if(curr_tick > past_max){
-        past_max = curr_tick;
-        past_idx = end;
-      }
-
-      double aroon_indicator = (n - (end - past_max)) * 100 / n * 1.0;
-      cumulative_aroon.push_back(aroon_indicator);
-      ++end;
+    for(int i = idx_l; i <= idx_r; ++i){
+      if(sum_tree[i + num_nodes] == period_max){ max_idx = i; break;}
     }
+    
+    int days_since_last_max = period - (max_idx + 1); 
 
-    return cumulative_aroon;
+    return ((period * 1.0 - days_since_last_max) / period * 1.0) * 100.0;
   }
 };
 
