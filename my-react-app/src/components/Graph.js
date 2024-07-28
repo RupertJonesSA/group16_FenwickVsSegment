@@ -4,6 +4,7 @@ import info from "./data.json";
 import "path-browserify";
 import { animateScroll } from "react-scroll";
 import { SMA, EMA, RSI, BollingerBands } from "technicalindicators";
+import useSegmentTree from "./customHooks/useSegmentTree.js";
 
 export const Graph = (props) => {
   const chartContainerRef = useRef();
@@ -68,7 +69,6 @@ export const Graph = (props) => {
       flt64Data[i] = closingData[i];
     }
     setPricesArray(flt64Data);
-    console.log(closingData);
 
     const period = 20;
     const stdDev = 2;
@@ -111,55 +111,26 @@ export const Graph = (props) => {
     lowerBandSeries.setData(lowerBandData);
 
     chart.timeScale().applyOptions({
-      borderColor: '#71649C',
+      borderColor: "#71649C",
       barSpacing: 20,
-  });
+    });
 
     return () => {
       chart.remove();
     };
   }, [props.temp]);
 
-  // Beginning of wasm C++ segment tree import
-  const [result, setResult] = useState(null);
+  // Use custom hook to calculate relevant metrics to current data and interval
   const param1Ref = useRef(null);
   const param2Ref = useRef(null);
-
-  const wasmModule = require("../react-wasm/build/segment_implem.js");
-
-  const calculateRSI = () => {
-    // Load wasmModule from js file
-    wasmModule.default().then((instance) => {
-      // Set up number of bytes required for prices array
-      const numBytes = pricesArray.length * pricesArray.BYTES_PER_ELEMENT;
-      const pricesArrayPtr = instance._malloc(numBytes); // allocate memory
-
-      instance.HEAPF64.set(
-        pricesArray,
-        pricesArrayPtr / pricesArray.BYTES_PER_ELEMENT,
-      );
-
-      const param1 = parseInt(param1Ref.current.value);
-      const param2 = parseInt(param2Ref.current.value);
-
-      // access stand-alone functions via ccall
-      const compute_rsi = instance.ccall(
-        "compute_rsi",
-        "number",
-        ["number", "number", "number", "number"],
-        [
-          pricesArrayPtr,
-          param2, 
-          param1,
-          pricesArray.length,
-        ],
-      );
-
-      setResult(compute_rsi);
-
-      instance._free(pricesArrayPtr);
-    });
-  };
+  const {
+    rsi,
+    cumulativeSum,
+    intervalAverage,
+    intervalVariance,
+    aroonUp,
+    aroonDown,
+  } = useSegmentTree(pricesArray, param1Ref, param2Ref);
 
   return (
     <div className="bg-[rgba(0,7,21,255)] h-[925px] w-full flex justify-around align-center">
@@ -168,19 +139,19 @@ export const Graph = (props) => {
         <p>{pricesArray.length}</p>
         <input type="number" ref={param1Ref} />
         <input type="number" ref={param2Ref} />
-        <button onClick={() => calculateRSI()}>Calculate</button>
-        <p>Result is: {result}</p>
+        <button>Calculate</button>
+        <p>Result is: {rsi}</p>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Cumulative Sum
-          <p className="text-white text-3xl pt-2">$172.32</p>
+          <p className="text-white text-3xl pt-2">${cumulativeSum}</p>
         </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Cumulative Average
-          <p className="text-white text-3xl pt-2">$179.94</p>
+          Interval Average
+          <p className="text-white text-3xl pt-2">${intervalAverage}</p>
         </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Variance
-          <p className="text-white text-3xl pt-2">$180.53</p>
+          <p className="text-white text-3xl pt-2">{intervalVariance}</p>
         </div>
         <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
           Secant Line
