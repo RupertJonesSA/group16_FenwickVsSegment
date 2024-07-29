@@ -122,36 +122,36 @@ public:
     return std::sqrt(interval_variance(idx_l, idx_r));
   } 
   
-  /* O(p), where p is the length of the period */
+  /* O(p + log n), where p is the length of the period and n is the number of recorded days */
   double aroon_down(int idx_l, int idx_r){
-    int period = idx_r - idx_l + 1; 
+    int interval = idx_r - idx_l + 1; 
     
     double period_min = interval_minimum(idx_l, idx_r);
     int min_idx = 0;
     
     for(int i = idx_l; i <= idx_r; ++i){
-      if(sum_tree[i+num_nodes] == period_min){ min_idx = i; break; }
+      if(sum_tree[i+num_nodes] == period_min){ min_idx = i;}
     } 
     
-    int days_since_last_min = period - (min_idx + 1); // have to add one due to min_idx being zero-indexed
+    int periods_since_last_min = idx_r - min_idx; // have to add one due to min_idx being zero-indexed
 
-    return ((period * 1.0 - days_since_last_min) / period * 1.0) * 100.0;
+    return ((interval - periods_since_last_min * 1.0) / interval * 1.0) * 100.0;
   }
   
   /* O(p), where p is the length of the period */
   double aroon_up(int idx_l, int idx_r){
-    int period = idx_r - idx_l + 1; 
+    int interval = idx_r - idx_l + 1; 
     
     double period_max = interval_maximum(idx_l, idx_r);  
     int max_idx = 0;
     
     for(int i = idx_l; i <= idx_r; ++i){
-      if(sum_tree[i + num_nodes] == period_max){ max_idx = i; break;}
+      if(sum_tree[i + num_nodes] == period_max){ max_idx = i;}
     }
     
-    int days_since_last_max = period - (max_idx + 1); 
+    int periods_since_last_max = idx_r - max_idx; 
 
-    return ((period * 1.0 - days_since_last_max) / period * 1.0) * 100.0;
+    return ((interval * 1.0 - periods_since_last_max) / interval * 1.0) * 100.0;
   }
 };
 
@@ -160,8 +160,8 @@ public:
 extern "C"{
   EMSCRIPTEN_KEEPALIVE
   double compute_rsi(double* prices, int idx_l, int idx_r, int n){
-    vector<double> gains(n - 1);
-    vector<double> losses(n - 1);  
+    vector<double> gains(n-1);
+    vector<double> losses(n-1);  
     
     for(int i = 0; i < n - 1; ++i){
       double diff = prices[i+1] - prices[i];
@@ -177,8 +177,8 @@ extern "C"{
       }
     }
 
-    segment_tree gains_tree(gains.size());
-    segment_tree losses_tree(losses.size());
+    segment_tree gains_tree(n-1);
+    segment_tree losses_tree(n-1);
     gains_tree.build(gains);
     losses_tree.build(losses);
     
@@ -191,18 +191,21 @@ extern "C"{
 }
 
 EMSCRIPTEN_BINDINGS(segment_tree){
+  
+  emscripten::register_vector<double>("VectorDouble");
+
   emscripten::class_<segment_tree>("segment_tree")
     .constructor<int>()
     .function("build", &segment_tree::build)
     .function("set", &segment_tree::set)
-    .function("cummulative_sum", &segment_tree::cumulative_sum)
+    .function("cumulative_sum", &segment_tree::cumulative_sum)
     .function("interval_average", &segment_tree::interval_average)
     .function("interval_minimum", &segment_tree::interval_minimum)
     .function("interval_maximum", &segment_tree::interval_maximum)
     .function("interval_variance", &segment_tree::interval_variance)
     .function("aroon_up", &segment_tree::aroon_up)
     .function("aroon_down", &segment_tree::aroon_down);
-}
+};
 
 int main(){
   return 0;
