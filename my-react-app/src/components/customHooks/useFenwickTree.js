@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-const useSegmentTree = (pricesArray, param1, param2) => {
+const useFenwickTree = (pricesArray, param1, param2) => {
   const [from, setFrom] = useState(0);
   const [to, setTo] = useState(pricesArray.length);
-  const [rsi, setRSI] = useState([]);
-  const [cumulativeSum, setCumulativeSum] = useState([]);
-  const [intervalAverage, setIntervalAverage] = useState([]);
-  const [intervalVariance, setIntervalVariance] = useState([]);
-  const [intervalStandardDeviation, setStandardDeviation] = useState([]);
-  const [aroonUp, setAroonUp] = useState([]);
-  const [aroonDown, setAroonDown] = useState([]);
+  const [frsi, setRSI] = useState([]);
+  const [fcumulativeSum, setCumulativeSum] = useState([]);
+  const [fintervalAverage, setIntervalAverage] = useState([]);
+  const [fintervalVariance, setIntervalVariance] = useState([]);
+  const [fintervalStandardDeviation, setStandardDeviation] = useState([]);
+  const [faroonUp, setAroonUp] = useState([]);
+  const [faroonDown, setAroonDown] = useState([]);
 
-  // Identify if user has changed the interval of calculation
+  //Identify if user has changed the interval of calculation
   useEffect(() => {
     const checkInterval = () => {
       if (
@@ -37,12 +37,9 @@ const useSegmentTree = (pricesArray, param1, param2) => {
   // Recalculate metrics if interval has changed
   useEffect(() => {
     const loadWasm = async () => {
-      try{
-        const wasmModule = require("../../react-wasm/build/segment_implem.js");
+      try {
+        const wasmModule = require("../../react-wasm/build/fenwick_tree_implem.js");
         let instance = await wasmModule.default();
-
-        // Instantiate segmentTree object
-        let segmentTree = new instance.segment_tree(pricesArray.length);
 
         // Convert Float64Array to vector<double>
         let vectorDouble = new instance.VectorDouble();
@@ -50,10 +47,12 @@ const useSegmentTree = (pricesArray, param1, param2) => {
           vectorDouble.push_back(price);
         }
 
-        segmentTree.build(vectorDouble);
+        // Instantiate segmentTree object
+        let fenwickTree = new instance.fenwick_tree(vectorDouble);
+
         let from = parseInt(param1.current.value);
         let to = parseInt(param2.current.value);
-        
+
         if (from < 0 || isNaN(from)) {
           from = 0;
         }
@@ -68,27 +67,27 @@ const useSegmentTree = (pricesArray, param1, param2) => {
         const rsiTime = performance.now() - startTime;
         startTime = performance.now();
         
-        const computedSum = segmentTree.cumulative_sum(from, to).toFixed(2);
+        const computedSum = fenwickTree.cumulative_sum(from, to).toFixed(2);
         const sumTime = performance.now() - startTime;
         startTime = performance.now();
 
-        const computedAverage = segmentTree.interval_average(from, to).toFixed(2);
+        const computedAverage = fenwickTree.interval_average(from, to).toFixed(2);
         const averageTime = performance.now() - startTime;
         startTime = performance.now();
 
-        const computedVariance = segmentTree.interval_variance(from, to).toFixed(2);
+        const computedVariance = fenwickTree.interval_variance(from, to).toFixed(2);
         const varianceTime = performance.now() - startTime;
         startTime = performance.now();
 
-        const computedStandard = segmentTree.interval_standard_deviation(from, to);
+        const computedStandard = fenwickTree.interval_standard_deviation(from, to);
         const standardTime = performance.now() - startTime;
         startTime = performance.now();
 
-        const computedAroonUp = segmentTree.aroon_up(from, to).toFixed(2);
+        const computedAroonUp = fenwickTree.aroon_up(from, to).toFixed(2);
         const aroonUpTime = performance.now() - startTime;
         startTime = performance.now(); 
 
-        const computedAroonDown = segmentTree.aroon_down(from, to).toFixed(2); 
+        const computedAroonDown = fenwickTree.aroon_down(from, to).toFixed(2); 
         const aroonDownTime = performance.now() - startTime;
         
         setRSI([computedRSI, rsiTime]);
@@ -97,17 +96,17 @@ const useSegmentTree = (pricesArray, param1, param2) => {
         setIntervalVariance([computedVariance, varianceTime]);
         setStandardDeviation([computedStandard, standardTime]);
         setAroonUp([computedAroonUp, aroonUpTime]);
-        setAroonDown([computedAroonDown, aroonDownTime]); 
+        setAroonDown([computedAroonDown, aroonDownTime]);
         
-        // Must delete instance of segment tree before calling compute_rsi as the function
-        // utilizes two segment trees to perform the necessary calculations optimally. Due to the
+        // Must delete instance of fenwick tree before calling compute_rsi as the function
+        // utilizes two fenwick trees to perform the necessary calculations optimally. Due to the
         // limited heap size of web assembly, if the instance is not deleted, then a heap overflow will occur
-        segmentTree.delete();
-        vectorDouble.delete();         
+        fenwickTree.delete(); 
+        vectorDouble.delete();
 
         instance = null; // allow for garbage collection of instance
-      }catch(error){
-        console.log("Error loading segment tree wasm module", error);
+      } catch (error) {
+        console.error("Error loading fenwick tree wasm module", error);
       }
     };
 
@@ -115,14 +114,14 @@ const useSegmentTree = (pricesArray, param1, param2) => {
   }, [pricesArray, from, to, param1, param2]);
 
   return {
-    rsi,
-    cumulativeSum,
-    intervalAverage,
-    intervalVariance,
-    intervalStandardDeviation,
-    aroonUp,
-    aroonDown,
+    frsi,
+    fcumulativeSum,
+    fintervalAverage,
+    fintervalVariance,
+    fintervalStandardDeviation,
+    faroonUp,
+    faroonDown,
   };
 };
 
-export default useSegmentTree;
+export default useFenwickTree;

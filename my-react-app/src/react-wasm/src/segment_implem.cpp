@@ -112,7 +112,7 @@ public:
     double mean = interval_average(idx_l, idx_r);
     idx_l += num_nodes; idx_r += num_nodes;
     
-    for(int i = idx_l; i < idx_r; ++i){ variance += (sum_tree[i] - mean) * (sum_tree[i] - mean); }
+    for(int i = idx_l; i <= idx_r; ++i){ variance += (sum_tree[i] - mean) * (sum_tree[i] - mean); }
 
     return (variance / n);
   }
@@ -157,42 +157,40 @@ public:
 
 /* O(nlog n + mlog n), where n is the number of recording days and m is the amount of 
 * days in the interval*/
-extern "C"{
-  EMSCRIPTEN_KEEPALIVE
-  double compute_rsi(double* prices, int idx_l, int idx_r, int n){
-    vector<double> gains(n-1);
-    vector<double> losses(n-1);  
-    
-    for(int i = 0; i < n - 1; ++i){
-      double diff = prices[i+1] - prices[i];
-      if(diff < 0){
-        losses[i] = -diff;
-        gains[i] = 0;
-      }else if(diff > 0){
-        losses[i] = 0;
-        gains[i] = diff;
-      }else{
-        losses[i] = 0;
-        gains[i] = 0;
-      }
+double compute_rsi(vector<double>& prices, int idx_l, int idx_r, int n){
+  vector<double> gains(n-1);
+  vector<double> losses(n-1);  
+  
+  for(int i = 0; i < n - 1; ++i){
+    double diff = prices[i+1] - prices[i];
+    if(diff < 0){
+      losses[i] = -diff;
+      gains[i] = 0;
+    }else if(diff > 0){
+      losses[i] = 0;
+      gains[i] = diff;
+    }else{
+      losses[i] = 0;
+      gains[i] = 0;
     }
-
-    segment_tree gains_tree(n-1);
-    segment_tree losses_tree(n-1);
-    gains_tree.build(gains);
-    losses_tree.build(losses);
-    
-    double average_gains = gains_tree.interval_average(idx_l, idx_r);
-    double average_losses = losses_tree.interval_average(idx_l, idx_r);
-    double rsi = average_losses ? 100.0 - (100.0 / (1 + average_gains / average_losses)) : 100.0;
-    
-    return rsi;  
   }
+
+  segment_tree gains_tree(n-1);
+  segment_tree losses_tree(n-1);
+  gains_tree.build(gains);
+  losses_tree.build(losses);
+  
+  double average_gains = gains_tree.interval_average(idx_l, idx_r);
+  double average_losses = losses_tree.interval_average(idx_l, idx_r);
+  double rsi = average_losses ? 100.0 - (100.0 / (1 + average_gains / average_losses)) : 100.0;
+  
+  return rsi;  
 }
 
 EMSCRIPTEN_BINDINGS(segment_tree){
   
   emscripten::register_vector<double>("VectorDouble");
+  emscripten::function("compute_interval_rsi", &compute_rsi);
 
   emscripten::class_<segment_tree>("segment_tree")
     .constructor<int>()
@@ -203,6 +201,7 @@ EMSCRIPTEN_BINDINGS(segment_tree){
     .function("interval_minimum", &segment_tree::interval_minimum)
     .function("interval_maximum", &segment_tree::interval_maximum)
     .function("interval_variance", &segment_tree::interval_variance)
+    .function("interval_standard_deviation", &segment_tree::interval_standard_deviation)
     .function("aroon_up", &segment_tree::aroon_up)
     .function("aroon_down", &segment_tree::aroon_down);
 };
