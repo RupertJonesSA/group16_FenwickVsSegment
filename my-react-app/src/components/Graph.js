@@ -1,28 +1,41 @@
-import React, { useEffect, useRef, useState, createContext } from "react";
-import { createChart } from "lightweight-charts";
+import React, { useEffect, useRef, useState } from "react";
+import { LineStyle, createChart } from "lightweight-charts";
 import info from "./data.json";
 import "path-browserify";
 import { animateScroll } from "react-scroll";
-import { SMA, EMA, RSI, BollingerBands } from "technicalindicators";
+import { BollingerBands } from "technicalindicators";
 import useSegmentTree from "./customHooks/useSegmentTree.js";
+import { CustomRange } from "./customRange.js";
 
 export const Graph = (props) => {
+
+  //Initializes references and states for a chart component.
   const chartContainerRef = useRef();
   const [pricesArray, setPricesArray] = useState([]);
+  const [isClicked, setIsClicked] = useState(false);
+  const [timeIDS, setTimeIDS] = useState([]);
+
+  
 
   useEffect(() => {
-    animateScroll.scrollToBottom({ duration: 1000, smooth: true });
+    //Scrolls to a specific position on the page with animation
+    animateScroll.scrollTo(850, {
+      duration: 800,
+      delay: 0,
+      smooth: 'easeInOutQuart',
+    });
 
+    //Creates a chart with the specified options and adds a candlestick series to it.
     const chartOptions = {
       layout: {
         textColor: "white",
-        background: { type: "solid", color: "#000715" },
+        background: { type: "solid", color: "rgba(0,20,50,1)" },
       },
     };
     const chart = createChart(chartContainerRef.current, chartOptions);
     const candlestickSeries = chart.addCandlestickSeries({
-      upColor: "#26a69a",
-      downColor: "#ef5350",
+      upColor: "#0b9981",
+      downColor: "#f23645",
       borderVisible: false,
       wickUpColor: "#26a69a",
       wickDownColor: "#ef5350",
@@ -30,6 +43,7 @@ export const Graph = (props) => {
 
     //let timeSeries = info["Time Series (5min)"];
 
+    //Assigns the appropriate time series data based on the interval specified in the props object
     let timeSeries;
     if (props.interval === "intraday") {
       timeSeries = props.temp["Time Series (5min)"];
@@ -41,6 +55,7 @@ export const Graph = (props) => {
       timeSeries = props.temp["Monthly Time Series"];
     }
 
+    //Transforms the time series data object into an array of objects with parsed float values and converted time format.
     const transformedData = Object.keys(timeSeries).map((key) => {
       const {
         "1. open": open,
@@ -61,6 +76,9 @@ export const Graph = (props) => {
     const data = transformedData.sort((a, b) => a.time - b.time);
 
     const closingData = data.map((d) => d.close);
+    setTimeIDS(data.map((d)=>d.time));
+
+    console.log(timeIDS);
 
     // This type of array is necessary in order to allocate bytes into memory and provide the C++
     // code with necessary memory access. (MAKE SURE TO ALLOCATE 8 BYTES PER ELEMENT)
@@ -70,6 +88,7 @@ export const Graph = (props) => {
     }
     setPricesArray(flt64Data);
 
+    //Calculates Bollinger Bands based on the given period, closing data, and standard deviation.
     const period = 20;
     const stdDev = 2;
     const bb = BollingerBands.calculate({
@@ -95,18 +114,22 @@ export const Graph = (props) => {
 
     candlestickSeries.setData(data);
 
+    //Adds three line series to a given chart with different colors representing upper, middle, and lower bands.
     const upperBandSeries = chart.addLineSeries({
-      color: "rgba(255, 0, 0, 0.4)",
+      color: "#f23645",
+      lineWidth: "1"
     });
     upperBandSeries.setData(upperBandData);
 
     const middleBandSeries = chart.addLineSeries({
-      color: "rgba(0, 255, 255, 0.4)",
+      color: "#2862ff",
+      lineWidth: "1"
     });
     middleBandSeries.setData(middleBandData);
 
     const lowerBandSeries = chart.addLineSeries({
-      color: "rgba(0, 255, 0, 0.4)",
+      color: "#0b9981",
+      lineWidth: "1"
     });
     lowerBandSeries.setData(lowerBandData);
 
@@ -120,8 +143,9 @@ export const Graph = (props) => {
     };
   }, [props.temp]);
 
+
   // Use custom hook to calculate relevant metrics to current data and interval
-  const param1Ref = useRef(null);
+  /*const param1Ref = useRef(null);
   const param2Ref = useRef(null);
   const {
     rsi,
@@ -130,38 +154,17 @@ export const Graph = (props) => {
     intervalVariance,
     aroonUp,
     aroonDown,
-  } = useSegmentTree(pricesArray, param1Ref, param2Ref);
+  } = useSegmentTree(pricesArray, param1Ref, param2Ref);*/
 
   return (
-    <div className="bg-[rgba(0,7,21,255)] h-[925px] w-full flex justify-around align-center">
-      <div ref={chartContainerRef} className="h-[800px] w-3/4 pt-10 pl-5" />
-      <div className="flex flex-col mt-10 h-[800px] justify-around gap-4 text-[rgba(94,103,118,255)] text-center text-2xl font-semibold">
-        <p>{pricesArray.length}</p>
-        <input type="number" ref={param1Ref} />
-        <input type="number" ref={param2Ref} />
-        <button>Calculate</button>
-        <p>Result is: {rsi}</p>
-        <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Cumulative Sum
-          <p className="text-white text-3xl pt-2">${cumulativeSum}</p>
-        </div>
-        <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Interval Average
-          <p className="text-white text-3xl pt-2">${intervalAverage}</p>
-        </div>
-        <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Variance
-          <p className="text-white text-3xl pt-2">{intervalVariance}</p>
-        </div>
-        <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Secant Line
-          <p className="text-white text-3xl pt-2">y = 2.5x + 176.52</p>
-        </div>
-        <div className="bg-[rgba(15,22,38,255)] w-80 h-32 rounded-xl flex flex-col justify-center">
-          Time Taken
-          <p className="text-white text-3xl pt-2">1.2 ms</p>
-        </div>
+    <div className="bg-[rgba(0,20,50,1)] w-full justify-center text-center items-center">
+      <div className="pt-5 items-center text-center justify-center flex flex-col gap-10">
+        <p className="text-white text-6xl font-semibold">Stock Performance Overview</p>
+        <div ref={chartContainerRef} className="h-[600px] w-[90%]" />
       </div>
+
+      <CustomRange pricesArray={pricesArray} timeIDS={timeIDS} interval={props.interval}/>
+
     </div>
   );
 };

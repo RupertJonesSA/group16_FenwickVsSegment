@@ -9,15 +9,15 @@ import background from "./components/markus-spiske-XK8NeUj6Gzs-unsplash.jpg";
 import info from "./components/data.json";
 import "./css/background.css";
 import { initAnimation, initHeader, addListeners } from "./canvas";
+import { DataVis } from "./components/dataVis";
 
 function App() {
+  //Initializes state variables for ticker, interval, isLoading, and temp using the useState hook.
   const [ticker, setTicker] = useState("");
   const [interval, setInterval] = useState("intraday");
-  const [dataStruct, setDataStruct] = useState("fenwick");
   const [isLoading, setIsLoading] = useState(true);
   const [temp, setTemp] = useState(null);
 
-  let check;
 
   useEffect(() => {
     initHeader();
@@ -53,7 +53,6 @@ function App() {
           <Form
             setTicker={setTicker}
             setInterval={setInterval}
-            setDataStruct={setDataStruct}
             isLoading={isLoading}
             setTemp={setTemp}
             setIsLoading={setIsLoading}
@@ -64,19 +63,23 @@ function App() {
 
       <div>
       {!isLoading ? ((!temp.hasOwnProperty("Error Message") && !temp.hasOwnProperty("Information")) ? (
+        <>
         <Graph temp={temp} interval={interval} setIsLoading={setIsLoading}/>
-        
+        <DataVis/>
+        </>
         
         ) : null) : null}
+
       </div>
 
       {/*<Graph
         temp={temp}
-        dataStruct={dataStruct}
-        setDataStruct={setDataStruct}
         interval={interval}
         setIsLoading={setIsLoading}
-      />*/}
+      />
+      
+      <DataVis/>*/}
+
     </div>
   );
 }

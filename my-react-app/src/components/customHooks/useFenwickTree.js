@@ -15,18 +15,18 @@ const useFenwickTree = (pricesArray, param1, param2) => {
   useEffect(() => {
     const checkInterval = () => {
       if (
-        param1.current.value !== 0 &&
-        !isNaN(param1.current.value) &&
-        param1.current.value !== from
+        param1.current?.value !== 0 &&
+        !isNaN(param1.current?.value) &&
+        param1.current?.value !== from
       ) {
-        setFrom(param1.current.value);
+        setFrom(param1.current?.value);
       }
       if (
-        param2.current.value !== 0 &&
-        !isNaN(param2.current.value) &&
-        param2.current.value !== to
+        param2.current?.value !== 0 &&
+        !isNaN(param2.current?.value) &&
+        param2.current?.value !== to
       ) {
-        setTo(param2.current.value);
+        setTo(param2.current?.value);
       }
     };
 

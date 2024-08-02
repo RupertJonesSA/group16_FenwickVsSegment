@@ -6,12 +6,14 @@ import searchIcon from "./icons8-search-50.png";
 import Select from "react-select";
 
 export const Form = (props) => {
+  //Manages the state of URL, apiKey, selectedOption1, and selectedOption2 using React hooks.
   const [URL, setURL] = useState("");
-  const apiKey = "KL2D3BYFRWKSUUHF";
+  const apiKey = "KV4FLOY71WHDYJ81";
 
   const [selectedOption1, setSelectedOption1] = useState(null);
   const [selectedOption2, setSelectedOption2] = useState(null);
 
+  //Fetches data from a specified URL using Axios, logs the data to the console, sets the data in the component's state, handles errors, and updates the loading state.
   const fetchData = () => {
     Axios.get(URL)
       .then((res) => {
@@ -33,10 +35,10 @@ export const Form = (props) => {
     }
   }, [URL]);
 
+  //Handles form submission by setting the ticker and interval based on the form values.
   const onSubmit = (values, actions) => {
     props.setTicker(values.ticker);
     props.setInterval(selectedOption1?.value);
-    props.setDataStruct(selectedOption2?.value);
 
     if (selectedOption1?.value === "intraday") {
       setURL(
@@ -57,15 +59,17 @@ export const Form = (props) => {
     }
   };
 
+  //Defines a basic schema using Yup for validating an object with ticker and interval properties.
   const basicSchema = yup.object().shape({
     ticker: yup.string().required("Please enter a stock ticker!"),
     interval: yup
       .string()
       .oneOf(["intraday", "daily", "weekly", "monthly"])
       .required(),
-    dataStruct: yup.string().oneOf(["segment", "fenwick"]).required(),
   });
 
+
+   //Destructures values, handleBlur, touched, handleChange, handleSubmit, errors, and isSubmitting from the useFormik hook with the provided initial values, validation schema, and onSubmit function.
   const {
     values,
     handleBlur,
@@ -78,13 +82,13 @@ export const Form = (props) => {
     initialValues: {
       ticker: "",
       interval: "intraday",
-      dataStruct: "fenwick",
     },
     validationSchema: basicSchema,
     onSubmit,
   });
 
 
+  //Options for interval selection.
   const intervalOptions = [
     { value: "intraday", label: "Intraday" },
     { value: "daily", label: "Daily" },
@@ -92,10 +96,6 @@ export const Form = (props) => {
     { value: "monthly", label: "Monthly" },
   ];
 
-  const structOptions = [
-    { value: "fenwick", label: "Fenwick Tree" },
-    { value: "segment", label: "Segment Tree" },
-  ];
 
   console.log(errors);
 
@@ -103,7 +103,7 @@ export const Form = (props) => {
     <form
       onSubmit={handleSubmit}
       autoComplete="off"
-      className=" w-[500px] h-40 select-none"
+      className=" w-[500px] h-40 select-none flex flex-col"
     >
       <div>
         <input
@@ -127,18 +127,18 @@ export const Form = (props) => {
         {!props.isLoading? (
           props.temp.hasOwnProperty("Error Message") ||
           props.temp.hasOwnProperty("Information") ? (
-            <div className="text-center rounded-lg text-white text-2xl mb-4 font-semibold bg-[rgba(15,22,38,255)]">
+            <div className="text-center rounded-lg text-red-500 bg-[rgba(0,0,0,0.6)] text-2xl mb-4 font-semibold">
               Please enter a valid stock ticker!
             </div>
           ) : null
         ) : null}
       </div>
 
-      <div className="flex w-[500px] content-between mb-4">
-        <div className="mr-3">
+      <div className="w-[500px] mb-4 flex justify-center">
+        <div>
           <Select
             isSearchable={false}
-            className="w-60 text-center rounded-lg text-2xl p-1 cursor-pointer"
+            className="w-80 text-center rounded-lg text-2xl p-1 cursor-pointer"
             required={true}
             label="Interval"
             name="interval"
@@ -149,22 +149,6 @@ export const Form = (props) => {
             defaultValue={values.interval}
             onChange={setSelectedOption1}
             options={intervalOptions}
-          />
-        </div>
-        <div>
-          <Select
-            isSearchable={false}
-            required={true}
-            className="w-60 text-center rounded-lg text-2xl p-1 cursor-pointer"
-            label="dataStruct"
-            name="dataStruct"
-            defaultValue={values.dataStruct}
-            onChange={setSelectedOption2}
-            onBlur={handleBlur}
-            id="dataStruct"
-            type="text"
-            placeholder="Data Structure"
-            options={structOptions}
           />
         </div>
       </div>
