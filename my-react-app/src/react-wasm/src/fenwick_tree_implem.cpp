@@ -10,7 +10,6 @@ class fenwick_tree
 {
     std::vector<double> tree;
     std::vector<double> squareTree;
-    int size; // Size of the original array
 
     /* sum from arr[0] to arr[index] (inclusive) */
     /* O(log n), with n being the number of recorded days */
@@ -65,13 +64,13 @@ class fenwick_tree
     double private_interval_average(std::vector<double> &tree, int low, int high)
     {
         if (low > 0)
-            return (getSum(tree, high) - getSum(tree, low-1)) / (high - low + 1);  
+            return (getSum(tree, high) - getSum(tree, low - 1)) / (high - low + 1);
 
         return getAverage(tree, high);
     }
 
 public:
-    fenwick_tree(const std::vector<double> &arr) : size(arr.size())
+    fenwick_tree(const std::vector<double> &arr)
     {
         // Fill the trees with zeros
         tree.resize(arr.size() + 1, 0);
@@ -175,64 +174,65 @@ public:
         double num_periods_since = high - minIndex;
         return 100.0 * (interval - num_periods_since) / interval * 1.0;
     }
-};
 
-/* Calculate the rsi for an interval using fenwick trees representing gains and losses */
-/* O(log n + log m), where n is the number of gains and m is the number of losses */
-double interval_rsi_fenwick(std::vector<double>& prices, int low, int high, int n)
-{
-  if (n <= 1 || low < 0 || high >= n-1 || low > high) {
-    return 0.0;  // Or some error value
-  }
-
-  std::vector<double> gains(n-1);
-  std::vector<double> losses(n-1);
-  
-  for(int i = 0; i < n-1; ++i){
-    double diff = prices[i+1] - prices[i];
-    if(diff < 0){
-      losses[i] = -diff;
-      gains[i] = 0;
-    }else if(diff > 0){
-      losses[i] = 0;
-      gains[i] = diff;
-    }else{
-      gains[i] = 0;
-      losses[i] = 0;
+    double ema(int low, int high)
+    {
+        // TODO make EMA calculation based on previous EMA
+        double sma = private_interval_average(tree, low, high - 1);
+        double k = 2 / (high - low);
+        double priceT = private_cumulative_sum(tree, high, high);
+        double emaY;
+        return 0.0;
     }
-  }
 
-  fenwick_tree gains_tree(gains);
-  fenwick_tree losses_tree(losses);
-  double gainAverage = gains_tree.interval_average(low, high);
-  double lossAverage = losses_tree.interval_average(low, high);
- 
-  if (lossAverage == 0) return 100.0;
-  double rs = gainAverage / lossAverage;
-  return 100.0 - (100.0 / (1.0 + rs));
-}
+    double interval_kurtosis(int low, int high)
+    {
+        // Size of the data
+        double n = high - low + 1;
+
+        // Calculate expressions for the formula
+        double expression1 = n * (n + 1) / ((n - 1) * (n - 2) * (n - 3));
+        double expression3 = (3 * std::pow(n - 1, 2)) / ((n - 2) * (n - 3));
+
+        // Calculate the mean for the interval
+        double mean = private_interval_average(tree, low, high);
+
+        // Make population standard deviation into sample standard deviation
+        double stddev = interval_standard_deviation(low, high) * std::sqrt(n / (n - 1));
+
+        // expression 2 = sum(((x_i - mean) / stddev)^4)
+        double expression2 = 0;
+        for (int i = low; i <= high; ++i)
+        {
+            int x = private_cumulative_sum(tree, i, i);
+            expression2 += std::pow((x - mean) / stddev, 4);
+        }
+
+        return expression1 * expression2 - expression3;
+    }
+};
 
 EMSCRIPTEN_BINDINGS(fenwick_tree)
 {
-  emscripten::register_vector<double>("VectorDouble");
-  emscripten::function("compute_interval_rsi", &interval_rsi_fenwick); 
+    emscripten::register_vector<double>("VectorDouble");
 
-  emscripten::class_<fenwick_tree>("fenwick_tree")
-    .constructor<std::vector<double>>()
-    .function("update", &fenwick_tree::update)
-    .function("cumulative_sum", &fenwick_tree::cumulative_sum)
-    .function("interval_average", &fenwick_tree::interval_average)
-    .function("interval_variance", &fenwick_tree::interval_variance)
-    .function("interval_standard_deviation", &fenwick_tree::interval_standard_deviation)
-    .function("aroon_up", &fenwick_tree::aroon_up)
-    .function("aroon_down", &fenwick_tree::aroon_down);
+    emscripten::class_<fenwick_tree>("fenwick_tree")
+        .constructor<std::vector<double>>()
+        .function("update", &fenwick_tree::update)
+        .function("cumulative_sum", &fenwick_tree::cumulative_sum)
+        .function("interval_average", &fenwick_tree::interval_average)
+        .function("interval_variance", &fenwick_tree::interval_variance)
+        .function("interval_standard_deviation", &fenwick_tree::interval_standard_deviation)
+        .function("aroon_up", &fenwick_tree::aroon_up)
+        .function("aroon_down", &fenwick_tree::aroon_down)
+        .function("ema", &fenwick_tree::ema)
+        .function("kurtosis", &fenwick_tree::interval_kurtosis);
 };
 
-int main()
-{
-    // std::vector<double> tree = {150.23, 152.35, 151.00, 153.45, 154.00, 152.75, 155.10, 157.25, 156.50, 158.75, 159.50, 160.00, 158.25, 160.75};
-    // fenwick_tree f(tree);
-
-    // std::cout << f.interval_rsi(0, tree.size() - 1) << std::endl;
-    return 0;
-}
+// int main()
+// {
+//     std::vector<double> t = {3, 4, 5, 2, 3, 4, 5, 6, 4, 7};
+//     fenwick_tree tree(t);
+//     tree.interval_kurtosis(0, t.size() - 1);
+//     return 0;
+// }
