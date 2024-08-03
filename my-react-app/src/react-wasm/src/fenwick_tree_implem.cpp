@@ -8,8 +8,10 @@
 
 class fenwick_tree
 {
-    std::vector<double> tree;
-    std::vector<double> squareTree;
+    std::vector<double> tree{};
+    std::vector<double> squareTree{};
+    std::vector<double> cubeTree{};
+    std::vector<double> fourthTree{};
 
     /* sum from arr[0] to arr[index] (inclusive) */
     /* O(log n), with n being the number of recorded days */
@@ -75,12 +77,16 @@ public:
         // Fill the trees with zeros
         tree.resize(arr.size() + 1, 0);
         squareTree.resize(arr.size() + 1, 0);
+        cubeTree.resize(arr.size() + 1, 0);
+        fourthTree.resize(arr.size() + 1, 0);
 
         // Store the actual values in the trees using update()
         for (int i = 0; i < arr.size(); i++)
         {
             updateHelper(tree, i, arr[i]);
             updateHelper(squareTree, i, arr[i] * arr[i]);
+            updateHelper(cubeTree, i, std::pow(arr[i], 3));
+            updateHelper(fourthTree, i, std::pow(arr[i], 4));
         }
     }
 
@@ -94,8 +100,22 @@ public:
         // Add the difference between the new value and old value to all relevent nodes
         updateHelper(tree, index, diff);
 
-        // Number to be added = 2xy + y * y; y = diff, x = currentVal
+        double x = currentVal;
+        double x2 = currentVal * currentVal;
+        double x3 = std::pow(currentVal, 3);
+        double y = diff;
+        double y2 = diff * diff;
+        double y3 = std::pow(diff, 3);
+        double y4 = std::pow(diff, 4);
+
+        // Number to be added = 2xy + y * y
         updateHelper(squareTree, index, 2 * currentVal * diff + diff * diff);
+
+        // Number to be added = 3(x^2)y + 3x(y^2) + y^3
+        updateHelper(cubeTree, index, 3 * x2 * y + 3 * x * y2 + y3);
+
+        // Number to be added = 4(x^3)y + 6(x^2)(y^2) + 4x(y^3) + y^4
+        updateHelper(fourthTree, index, 4 * x3 * y + 6 * x2 * y2 + 4 * x * y3 + y4);
     }
 
     /* cumulative sum from low to high (inclusive) */
@@ -177,12 +197,20 @@ public:
 
     double ema(int low, int high)
     {
-        // TODO make EMA calculation based on previous EMA
-        double sma = private_interval_average(tree, low, high - 1);
-        double k = 2 / (high - low);
-        double priceT = private_cumulative_sum(tree, high, high);
-        double emaY;
-        return 0.0;
+        // Initialize smoothing factor and EMA_0
+        double k = 2 / (double)(high - low + 2);
+        double emaY = private_cumulative_sum(tree, low, low);
+        double priceT;
+        double emaT;
+
+        // Calculate EMA_high iteratively
+        for (int i = low + 1; i <= high; ++i)
+        {
+            priceT = private_cumulative_sum(tree, i, i);
+            emaT = priceT * k + emaY * (1 - k);
+            emaY = emaT;
+        }
+        return emaT;
     }
 
     double interval_kurtosis(int low, int high)
@@ -200,13 +228,13 @@ public:
         // Make population standard deviation into sample standard deviation
         double stddev = interval_standard_deviation(low, high) * std::sqrt(n / (n - 1));
 
-        // expression 2 = sum(((x_i - mean) / stddev)^4)
-        double expression2 = 0;
-        for (int i = low; i <= high; ++i)
-        {
-            int x = private_cumulative_sum(tree, i, i);
-            expression2 += std::pow((x - mean) / stddev, 4);
-        }
+        double fourthSum = private_cumulative_sum(fourthTree, low, high);
+        double cubeSum = private_cumulative_sum(cubeTree, low, high);
+        double squareSum = private_cumulative_sum(squareTree, low, high);
+        double mean2 = mean * mean;
+        double mean4 = std::pow(mean, 4);
+
+        double expression2 = (fourthSum - 4 * mean * cubeSum + 6 * mean2 * squareSum - 3 * mean4 * n) / std::pow(stddev, 4);
 
         return expression1 * expression2 - expression3;
     }
@@ -229,10 +257,7 @@ EMSCRIPTEN_BINDINGS(fenwick_tree)
         .function("kurtosis", &fenwick_tree::interval_kurtosis);
 };
 
-// int main()
-// {
-//     std::vector<double> t = {3, 4, 5, 2, 3, 4, 5, 6, 4, 7};
-//     fenwick_tree tree(t);
-//     tree.interval_kurtosis(0, t.size() - 1);
-//     return 0;
-// }
+int main()
+{
+    return 0;
+}
