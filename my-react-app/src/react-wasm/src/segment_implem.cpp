@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
@@ -12,6 +13,7 @@ using std::vector;
 using std::string;
 using std::min;
 using std::max;
+using std::sqrt;
 
 /* Range query sum/min/max segment tree implementation */
 class segment_tree{
@@ -138,7 +140,7 @@ public:
     return ((interval - periods_since_last_min * 1.0) / interval * 1.0) * 100.0;
   }
   
-  /* O(p), where p is the length of the period */
+  /* O(p), where p is the numer of periods */
   double aroon_up(int idx_l, int idx_r){
     int interval = idx_r - idx_l + 1; 
     
@@ -153,44 +155,61 @@ public:
 
     return ((interval * 1.0 - periods_since_last_max) / interval * 1.0) * 100.0;
   }
+  
+  /* O(p), where p is the number of periods*/
+  double interval_ema(int idx_l, int idx_r){
+    int n = idx_r - idx_l + 1;
+
+    // Base case => Inital price
+    double ema_0 = sum_tree[idx_l+num_nodes];
+    
+    // smoothing factor provides greater weight to the most
+    // prices in the calculation.
+    double smoothing_factor = 2.0 / (n + 1);
+    double prev_ema = ema_0;
+    double curr_ema = 0.0;
+    double curr_price = 0.0; 
+    
+    // Recursive formula => EMA_i = sf*price_i + (1-sf)*EMA_{i-1}
+    for(int i = idx_l+1; i <= idx_r; ++i){
+      curr_price = sum_tree[i+num_nodes];
+      curr_ema = (smoothing_factor*curr_price) + (1-smoothing_factor)*(prev_ema);
+
+      prev_ema = curr_ema;
+    }
+
+    return curr_ema;
+  }
+  
+  /* O(p + log n), where p is the number of periods and n is the total recorded days in the tree */
+  double interval_kurtosis(int idx_l, int idx_r){
+    double n = idx_r - idx_l + 1;
+
+    double eq1 = (n * (n+1)) / ((n-1) * (n-2) * (n-3));
+    double eq3 = (3.0 * (n-1) * (n-1)) / ((n-2) * (n-3));
+    
+    // Convert population stddev to sample stddev
+    double stddev = interval_standard_deviation(idx_l, idx_r) * std::sqrt(n / (n-1));
+    double mean = interval_average(idx_l, idx_r);
+
+    double eq2 = 0.0;
+    double curr_price;
+    
+    // eq2 = sum(((x_i - mean) / stddev)^4)
+    for(int i = idx_l; i <= idx_r; ++i){
+      curr_price = sum_tree[i + num_nodes];
+      double term = (curr_price - mean) / stddev;
+      eq2 += (term * term * term * term);
+    }
+
+    return eq1 * eq2 - eq3;
+  }
 };
 
-/* O(nlog n + mlog n), where n is the number of recording days and m is the amount of 
-* days in the interval*/
-double compute_rsi(vector<double>& prices, int idx_l, int idx_r, int n){
-  vector<double> gains(n-1);
-  vector<double> losses(n-1);  
-  
-  for(int i = 0; i < n - 1; ++i){
-    double diff = prices[i+1] - prices[i];
-    if(diff < 0){
-      losses[i] = -diff;
-      gains[i] = 0;
-    }else if(diff > 0){
-      losses[i] = 0;
-      gains[i] = diff;
-    }else{
-      losses[i] = 0;
-      gains[i] = 0;
-    }
-  }
-
-  segment_tree gains_tree(n-1);
-  segment_tree losses_tree(n-1);
-  gains_tree.build(gains);
-  losses_tree.build(losses);
-  
-  double average_gains = gains_tree.interval_average(idx_l, idx_r);
-  double average_losses = losses_tree.interval_average(idx_l, idx_r);
-  double rsi = average_losses ? 100.0 - (100.0 / (1 + average_gains / average_losses)) : 100.0;
-  
-  return rsi;  
-}
 
 EMSCRIPTEN_BINDINGS(segment_tree){
   
   emscripten::register_vector<double>("VectorDouble");
-  emscripten::function("compute_interval_rsi", &compute_rsi);
 
   emscripten::class_<segment_tree>("segment_tree")
     .constructor<int>()
@@ -203,9 +222,15 @@ EMSCRIPTEN_BINDINGS(segment_tree){
     .function("interval_variance", &segment_tree::interval_variance)
     .function("interval_standard_deviation", &segment_tree::interval_standard_deviation)
     .function("aroon_up", &segment_tree::aroon_up)
-    .function("aroon_down", &segment_tree::aroon_down);
+    .function("aroon_down", &segment_tree::aroon_down)
+    .function("interval_ema", &segment_tree::interval_ema)
+    .function("interval_kurtosis", &segment_tree::interval_kurtosis);
 };
 
-int main(){
-  return 0;
-}
+// int main(){
+//   vector<double> data = {2.9, 3.4, 7.8, 5.5, 6.6, 7.7, 23.3};
+//   segment_tree segTree(data.size());
+//   segTree.build(data);
+//   std::cout << segTree.interval_kurtosis(0, data.size()-1) << "   " << segTree.interval_ema(0, data.size()-1) << "\n";
+//   std::cout << segTree.interval_standard_deviation(0, data.size()-1) << " " << segTree.interval_average(0, data.size()-1);
+// }
