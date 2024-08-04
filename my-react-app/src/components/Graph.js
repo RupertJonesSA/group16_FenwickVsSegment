@@ -37,10 +37,10 @@ export const Graph = (props) => {
       wickDownColor: "#ef5350",
     });
 
-     let timeSeries = info["Time Series (Daily)"];
+     //let timeSeries = info["Time Series (5min)"];
 
     //Assigns the appropriate time series data based on the interval specified in the props object
-    /*let timeSeries;
+    let timeSeries;
     if (props.interval === "intraday") {
       timeSeries = props.temp["Time Series (5min)"];
     } else if (props.interval === "daily") {
@@ -49,7 +49,7 @@ export const Graph = (props) => {
       timeSeries = props.temp["Weekly Time Series"];
     } else if (props.interval === "monthly") {
       timeSeries = props.temp["Monthly Time Series"];
-    }*/
+    }
 
     //Transforms the time series data object into an array of objects with parsed float values and converted time format.
     const transformedData = Object.keys(timeSeries).map((key) => {

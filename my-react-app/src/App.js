@@ -70,32 +70,12 @@ function App() {
         </div>
       </div>
 
-      {/*<div>
+      <div>
         {!isLoading ? (
           !temp.hasOwnProperty("Error Message") &&
           !temp.hasOwnProperty("Information") ? (
             <>
               <Graph
-                temp={temp}
-                interval={interval}
-                setIsLoading={setIsLoading}
-                indexArr={indexArr}
-                setIndexArr={setIndexArr}
-                dataArray={dataArray}
-                setDataArray={setDataArray}
-              />
-
-              setTimeout(<DataVis
-                indexArr={indexArr}
-                setIndexArr={setIndexArr}
-                dataArray = {dataArray}
-              />, 5000);
-            </>
-          ) : null
-        ) : null}
-      </div>*/}
-
-      <Graph
         temp={temp}
         interval={interval}
         setIsLoading={setIsLoading}
@@ -106,7 +86,24 @@ function App() {
         setClosingData={setClosingData}
       />
 
-        <DataVis indexArr={indexArr} setIndexArr={setIndexArr} dataArray={dataArray} />
+              <DataVis indexArr={indexArr} setIndexArr={setIndexArr} dataArray={dataArray} />5000);
+            </>
+          ) : null
+        ) : null}
+      </div>
+
+      {/*<Graph
+        temp={temp}
+        interval={interval}
+        setIsLoading={setIsLoading}
+        indexArr={indexArr}
+        setIndexArr={setIndexArr}
+        dataArray={dataArray}
+        setDataArray={setDataArray}
+        setClosingData={setClosingData}
+      />
+
+    <DataVis indexArr={indexArr} setIndexArr={setIndexArr} dataArray={dataArray} />*/}
     </div>
   );
 }

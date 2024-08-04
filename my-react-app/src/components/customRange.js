@@ -7,6 +7,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { TextField } from "@mui/material";
 import dayjs from "dayjs";
 import { Grid } from "@mui/material";
+import { useValueWithTimezone } from "@mui/x-date-pickers/internals/hooks/useValueWithTimezone";
 
 export const CustomRange = (props) => {
   //Initializes state variables for daily, intraday, weekly, and monthly ranges.
@@ -22,8 +23,9 @@ export const CustomRange = (props) => {
   const [monthRange1, setMonthRange1] = useState("");
   const [monthRange2, setMonthRange2] = useState("");
 
+
   const timeArr = props.timeIDS;
-  const interval = "daily";
+  const interval = props.interval;
   const indexArr = props.indexArr;
   const setIndexArr = props.setIndexArr;
 
@@ -52,7 +54,7 @@ export const CustomRange = (props) => {
   };
 
   //Get the range of the week for a given date.
-  const getWeekRange = (date) => {
+  /*const getWeekRange = (date) => {
     const endOfWeek = date.endOf("week").subtract(1, "day");
     const normalDate = new Date(timeArr[timeArr.length - 1] * 1000);
     if (Date.parse(endOfWeek) / 1000 > timeArr[timeArr.length - 1]) {
@@ -60,7 +62,7 @@ export const CustomRange = (props) => {
     } else {
       return `${endOfWeek.format("YYYY-MM-DD")}`;
     }
-  };
+  };*/
 
   //Get the month range for a given date.
   const getMonthRange = (date) => {
@@ -80,7 +82,7 @@ export const CustomRange = (props) => {
   //Updates the range based on the interval selected.
   const handleDateChange1 = (date) => {
     if (interval === "weekly") {
-      setWeekRange1(getWeekRange(date));
+      setWeekRange1(JSON.stringify(date).substring(1, 11));
     } else if (interval === "monthly") {
       setMonthRange1(getMonthRange(date));
     } else if (interval === "daily") {
@@ -94,7 +96,7 @@ export const CustomRange = (props) => {
   //Updates the range based on the interval selected.
   const handleDateChange2 = (date) => {
     if (interval === "weekly") {
-      setWeekRange2(getWeekRange(date));
+      setWeekRange2(JSON.stringify(date).substring(1, 11));
     } else if (interval === "monthly") {
       setMonthRange2(getMonthRange(date));
     } else if (interval === "daily") {
@@ -106,21 +108,29 @@ export const CustomRange = (props) => {
 
   //Disable a specific time based on the view (hours or minutes).
   const disableTime = (dateTime, view) => {
+    const formattedDate = dateTime.format("YYYY-MM-DD");
+  
     if (view === "hours") {
-      return !availableTimeSlots[dateTime.format("YYYY-MM-DD")]?.some(
-        (slot) => slot.hour === dateTime.hour(),
+      const hasAvailableHour = availableTimeSlots[formattedDate]?.some(
+        (slot) => slot.hour === dateTime.hour()
       );
+      return !hasAvailableHour;
     }
+  
     if (view === "minutes") {
-      const currentHourSlots = availableTimeSlots[
-        dateTime.format("YYYY-MM-DD")
-      ]?.filter((slot) => slot.hour === dateTime.hour());
-      return !currentHourSlots?.some(
-        (slot) => slot.minute === dateTime.minute(),
+      const currentHourSlots = availableTimeSlots[formattedDate]?.filter(
+        (slot) => slot.hour === dateTime.hour()
       );
+  
+      const hasAvailableMinute = currentHourSlots?.some(
+        (slot) => slot.minute === dateTime.minute()
+      );
+      return !hasAvailableMinute;
     }
+  
     return false;
   };
+  
 
   //Calculates the index of a given range in the timeArr array.
   const calcIndex = (range) => {
@@ -185,9 +195,9 @@ export const CustomRange = (props) => {
 
   const [isOn, setIsOn] = useState(false);
 
-  /*console.log(calcIndex(intradayRange1));
+  console.log(calcIndex(intradayRange1));
   console.log(calcIndex(intradayRange2));
-  console.log(indexArr);*/
+  console.log(indexArr);
 
   //Converts an array of timestamps into an array of dates in the format 'YYYY-MM-DD'.
   const daysAllowed = () => {
@@ -200,30 +210,51 @@ export const CustomRange = (props) => {
 
   //Converts an array of timestamps into an object with date strings as keys and an array of hour and minute objects as values.
   const timeAllowed = () => {
-    const dateStrings = timeArr.map((timestamp) =>
-      new Date(timestamp * 1000).toISOString(),
-    );
+    const tempData = timeArr.map((i) => new Date(i * 1000));
+    const options = {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+  };
 
-    //console.log(dateStrings);
-    const availableTimeSlots = dateStrings.reduce((acc, timestamp) => {
-      const date = new Date(timestamp);
-      const dateString = date.toISOString().split("T")[0]; // Extract the date part in YYYY-MM-DD format
-      const hour = date.getUTCHours();
-      const minute = date.getUTCMinutes();
+    const convertDate = tempData.map((i) => (i).toLocaleString('en-US', options));
+    const dateStrings = convertDate.map((i) => JSON.stringify(i).substring(1,18));
 
-      if (!acc[dateString]) {
-        acc[dateString] = [];
-      }
 
-      acc[dateString].push({ hour, minute });
+    const availableTimeSlots = {};
 
-      return acc;
-    }, {});
+  // Process each date string
+  dateStrings.forEach((dateString) => {
+    // Split the string into date and time components
+    const [datePart, timePart] = dateString.split(', ');
 
+    // Convert date from MM/DD/YYYY to YYYY-MM-DD
+    const [month, day, year] = datePart.split('/');
+    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+    // Convert time to hour and minute
+    const [hour, minute] = timePart.split(':').map(Number);
+
+    // Initialize the array for this date if it doesn't exist
+    if (!availableTimeSlots[formattedDate]) {
+      availableTimeSlots[formattedDate] = [];
+    }
+
+    // Add the time object to the array for this date
+    availableTimeSlots[formattedDate].push({ hour, minute });
+  });
+  
     return availableTimeSlots;
   };
 
   const availableTimeSlots = timeAllowed();
+
+  //console.log(availableTimeSlots);
 
   return (
     <div>
