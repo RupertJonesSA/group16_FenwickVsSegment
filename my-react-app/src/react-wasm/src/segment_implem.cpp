@@ -206,10 +206,41 @@ public:
   }
 };
 
+double compute_rsi(vector<double>& prices, int idx_l, int idx_r, int n){
+  vector<double> gains(n-1);
+  vector<double> losses(n-1);  
+
+  for(int i = 0; i < n - 1; ++i){
+    double diff = prices[i+1] - prices[i];
+    if(diff < 0){
+      losses[i] = -diff;
+      gains[i] = 0;
+    }else if(diff > 0){
+      losses[i] = 0;
+      gains[i] = diff;
+    }else{
+      losses[i] = 0;
+      gains[i] = 0;
+    }
+  }
+  
+  segment_tree gains_tree(n-1);
+  segment_tree losses_tree(n-1);
+  gains_tree.build(gains);
+  losses_tree.build(losses);
+
+  double average_gains = gains_tree.interval_average(idx_l, idx_r);
+  double average_losses = losses_tree.interval_average(idx_l, idx_r);
+  double rsi = average_losses ? 100.0 - (100.0 / (1 + average_gains / average_losses)) : 100.0;
+
+  return rsi;
+}
+
 
 EMSCRIPTEN_BINDINGS(segment_tree){
   
   emscripten::register_vector<double>("VectorDouble");
+  emscripten::function("compute_interval_rsi", &compute_rsi); 
 
   emscripten::class_<segment_tree>("segment_tree")
     .constructor<int>()

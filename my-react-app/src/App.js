@@ -17,7 +17,8 @@ function App() {
   const [interval, setInterval] = useState("intraday");
   const [isLoading, setIsLoading] = useState(true);
   const [temp, setTemp] = useState(null);
-
+  const [indexArr, setIndexArr] = useState([0, 100]);
+  const [dataArray, setDataArray] = useState([]);
 
   useEffect(() => {
     initHeader();
@@ -62,24 +63,44 @@ function App() {
       </div>
 
       <div>
-      {!isLoading ? ((!temp.hasOwnProperty("Error Message") && !temp.hasOwnProperty("Information")) ? (
-        <>
-        <Graph temp={temp} interval={interval} setIsLoading={setIsLoading}/>
-        <DataVis/>
-        </>
-        
-        ) : null) : null}
-
+        {!isLoading ? (
+          !temp.hasOwnProperty("Error Message") &&
+          !temp.hasOwnProperty("Information") ? (
+            <>
+              <Graph
+                temp={temp}
+                interval={interval}
+                setIsLoading={setIsLoading}
+                indexArr={indexArr}
+                setIndexArr={setIndexArr}
+                dataArray={dataArray}
+                setDataArray={setDataArray}
+              />
+              <DataVis
+                indexArr={indexArr}
+                setIndexArr={setIndexArr}
+                dataArray={dataArray}
+              />
+            </>
+          ) : null
+        ) : null}
       </div>
 
       {/*<Graph
         temp={temp}
         interval={interval}
         setIsLoading={setIsLoading}
+        indexArr={indexArr}
+        setIndexArr={setIndexArr}
+        dataArray={dataArray}
+        setDataArray={setDataArray}
       />
-      
-      <DataVis/>*/}
 
+      <DataVis
+        indexArr={indexArr}
+        setIndexArr={setIndexArr}
+        dataArray={dataArray}
+      />*/}
     </div>
   );
 }

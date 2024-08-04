@@ -3,36 +3,39 @@ import { useEffect, useState, useRef } from "react";
 const useFenwickTree = (pricesArray, param1, param2) => {
   const [from, setFrom] = useState(0);
   const [to, setTo] = useState(pricesArray.length);
-  const [frsi, setRSI] = useState([]);
-  const [fcumulativeSum, setCumulativeSum] = useState([]);
-  const [fintervalAverage, setIntervalAverage] = useState([]);
-  const [fintervalVariance, setIntervalVariance] = useState([]);
-  const [fintervalStandardDeviation, setStandardDeviation] = useState([]);
-  const [faroonUp, setAroonUp] = useState([]);
-  const [faroonDown, setAroonDown] = useState([]);
+  const [fintervalEMA, setIntervalEMA] = useState([0, 0]);
+  const [fintervalKurtosis, setIntervalKurtosis] = useState([0, 0]);
+  const [fcumulativeSum, setCumulativeSum] = useState([0, 0]);
+  const [fintervalAverage, setIntervalAverage] = useState([0, 0]);
+  const [fintervalVariance, setIntervalVariance] = useState([0, 0]);
+  const [fintervalStandardDeviation, setStandardDeviation] = useState([0, 0]);
+  const [faroonUp, setAroonUp] = useState([0, 0]);
+  const [faroonDown, setAroonDown] = useState([0, 0]);
 
-  //Identify if user has changed the interval of calculation
-  useEffect(() => {
-    const checkInterval = () => {
-      if (
-        param1.current?.value !== 0 &&
-        !isNaN(param1.current?.value) &&
-        param1.current?.value !== from
-      ) {
-        setFrom(param1.current?.value);
-      }
-      if (
-        param2.current?.value !== 0 &&
-        !isNaN(param2.current?.value) &&
-        param2.current?.value !== to
-      ) {
-        setTo(param2.current?.value);
-      }
-    };
+  // Function calculates execution time in milliseconds using javascript performance library
+  const measureExecutionTime = (func, iterations) => {
+    const start = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+      func();
+    }
+    const end = performance.now();
+    return end - start;
+  };
 
-    const intervalId = setInterval(checkInterval, 100);
-    return () => clearInterval(intervalId);
-  }, [param1, param2, from, to]);
+  // Function executes a method from the fenwick tree class a predetermined amount of times, measures time of each execute, and
+  // returns the average aggregate execution time.
+  const benchmarkMethod = (instance, methodName, args, numRuns = 10) => {
+    let totalTime = 0;
+
+    for (let i = 0; i < numRuns; i++) {
+      totalTime += measureExecutionTime(() => {
+        instance[methodName](...args);
+      }, 1000);
+    }
+    console.log(totalTime);
+    const averageTime = totalTime / numRuns;
+    return averageTime;
+  };
 
   // Recalculate metrics if interval has changed
   useEffect(() => {
@@ -47,11 +50,11 @@ const useFenwickTree = (pricesArray, param1, param2) => {
           vectorDouble.push_back(price);
         }
 
-        // Instantiate segmentTree object
+        // Instantiate fenwick Tree object
         let fenwickTree = new instance.fenwick_tree(vectorDouble);
 
-        let from = parseInt(param1.current.value);
-        let to = parseInt(param2.current.value);
+        let from = parseInt(param1);
+        let to = parseInt(param2);
 
         if (from < 0 || isNaN(from)) {
           from = 0;
@@ -61,47 +64,76 @@ const useFenwickTree = (pricesArray, param1, param2) => {
         }
 
         // Call all class methods to calculate metrics. Use performance module to calculate execution time
-        let startTime = performance.now();
+        const computedEMA = fenwickTree.interval_ema(from, to).toFixed(2);
+        const emaTime = benchmarkMethod(fenwickTree, "interval_ema", [
+          from,
+          to,
+        ]);
 
-        const computedRSI = instance.compute_interval_rsi(vectorDouble, from, to, pricesArray.length).toFixed(2);
-        const rsiTime = performance.now() - startTime;
-        startTime = performance.now();
-        
+        const computedKurtosis = fenwickTree
+          .interval_kurtosis(from, to)
+          .toFixed(2);
+        const kurtosisTime = benchmarkMethod(fenwickTree, "interval_kurtosis", [
+          from,
+          to,
+        ]);
+
         const computedSum = fenwickTree.cumulative_sum(from, to).toFixed(2);
-        const sumTime = performance.now() - startTime;
-        startTime = performance.now();
+        const sumTime = benchmarkMethod(fenwickTree, "cumulative_sum", [
+          from,
+          to,
+        ]);
 
-        const computedAverage = fenwickTree.interval_average(from, to).toFixed(2);
-        const averageTime = performance.now() - startTime;
-        startTime = performance.now();
+        const computedAverage = fenwickTree
+          .interval_average(from, to)
+          .toFixed(2);
+        const averageTime = benchmarkMethod(fenwickTree, "interval_average", [
+          from,
+          to,
+        ]);
 
-        const computedVariance = fenwickTree.interval_variance(from, to).toFixed(2);
-        const varianceTime = performance.now() - startTime;
-        startTime = performance.now();
+        const computedVariance = fenwickTree
+          .interval_variance(from, to)
+          .toFixed(2);
+        const varianceTime = benchmarkMethod(fenwickTree, "interval_variance", [
+          from,
+          to,
+        ]);
 
-        const computedStandard = fenwickTree.interval_standard_deviation(from, to);
-        const standardTime = performance.now() - startTime;
-        startTime = performance.now();
+        const computedStandard = fenwickTree
+          .interval_standard_deviation(from, to)
+          .toFixed(2);
+        const standardTime = benchmarkMethod(
+          fenwickTree,
+          "interval_standard_deviation",
+          [from, to],
+        );
 
         const computedAroonUp = fenwickTree.aroon_up(from, to).toFixed(2);
-        const aroonUpTime = performance.now() - startTime;
-        startTime = performance.now(); 
+        const aroonUpTime = benchmarkMethod(fenwickTree, "aroon_up", [
+          from,
+          to,
+        ]);
 
-        const computedAroonDown = fenwickTree.aroon_down(from, to).toFixed(2); 
-        const aroonDownTime = performance.now() - startTime;
-        
-        setRSI([computedRSI, rsiTime]);
+        const computedAroonDown = fenwickTree.aroon_down(from, to).toFixed(2);
+        const aroonDownTime = benchmarkMethod(fenwickTree, "aroon_down", [
+          from,
+          to,
+        ]);
+
+        setIntervalEMA([computedEMA, emaTime]);
+        setIntervalKurtosis([computedKurtosis, kurtosisTime]);
         setIntervalAverage([computedAverage, averageTime]);
         setCumulativeSum([computedSum, sumTime]);
         setIntervalVariance([computedVariance, varianceTime]);
         setStandardDeviation([computedStandard, standardTime]);
         setAroonUp([computedAroonUp, aroonUpTime]);
         setAroonDown([computedAroonDown, aroonDownTime]);
-        
+
         // Must delete instance of fenwick tree before calling compute_rsi as the function
         // utilizes two fenwick trees to perform the necessary calculations optimally. Due to the
         // limited heap size of web assembly, if the instance is not deleted, then a heap overflow will occur
-        fenwickTree.delete(); 
+        fenwickTree.delete();
         vectorDouble.delete();
 
         instance = null; // allow for garbage collection of instance
@@ -111,10 +143,11 @@ const useFenwickTree = (pricesArray, param1, param2) => {
     };
 
     loadWasm();
-  }, [pricesArray, from, to, param1, param2]);
+  }, [pricesArray, param1, param2]);
 
   return {
-    frsi,
+    fintervalEMA,
+    fintervalKurtosis,
     fcumulativeSum,
     fintervalAverage,
     fintervalVariance,

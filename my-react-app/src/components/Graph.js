@@ -4,25 +4,21 @@ import info from "./data.json";
 import "path-browserify";
 import { animateScroll } from "react-scroll";
 import { BollingerBands } from "technicalindicators";
-import useSegmentTree from "./customHooks/useSegmentTree.js";
 import { CustomRange } from "./customRange.js";
 
 export const Graph = (props) => {
-
   //Initializes references and states for a chart component.
   const chartContainerRef = useRef();
   const [pricesArray, setPricesArray] = useState([]);
   const [isClicked, setIsClicked] = useState(false);
   const [timeIDS, setTimeIDS] = useState([]);
 
-  
-
   useEffect(() => {
     //Scrolls to a specific position on the page with animation
     animateScroll.scrollTo(850, {
       duration: 800,
       delay: 0,
-      smooth: 'easeInOutQuart',
+      smooth: "easeInOutQuart",
     });
 
     //Creates a chart with the specified options and adds a candlestick series to it.
@@ -41,7 +37,7 @@ export const Graph = (props) => {
       wickDownColor: "#ef5350",
     });
 
-    //let timeSeries = info["Time Series (5min)"];
+    // let timeSeries = info["Time Series (5min)"];
 
     //Assigns the appropriate time series data based on the interval specified in the props object
     let timeSeries;
@@ -76,7 +72,7 @@ export const Graph = (props) => {
     const data = transformedData.sort((a, b) => a.time - b.time);
 
     const closingData = data.map((d) => d.close);
-    setTimeIDS(data.map((d)=>d.time));
+    setTimeIDS(data.map((d) => d.time));
 
     console.log(timeIDS);
 
@@ -86,7 +82,7 @@ export const Graph = (props) => {
     for (let i = 0; i < closingData.length; ++i) {
       flt64Data[i] = closingData[i];
     }
-    setPricesArray(flt64Data);
+    props.setDataArray(flt64Data);
 
     //Calculates Bollinger Bands based on the given period, closing data, and standard deviation.
     const period = 20;
@@ -117,19 +113,19 @@ export const Graph = (props) => {
     //Adds three line series to a given chart with different colors representing upper, middle, and lower bands.
     const upperBandSeries = chart.addLineSeries({
       color: "#f23645",
-      lineWidth: "1"
+      lineWidth: "1",
     });
     upperBandSeries.setData(upperBandData);
 
     const middleBandSeries = chart.addLineSeries({
       color: "#2862ff",
-      lineWidth: "1"
+      lineWidth: "1",
     });
     middleBandSeries.setData(middleBandData);
 
     const lowerBandSeries = chart.addLineSeries({
       color: "#0b9981",
-      lineWidth: "1"
+      lineWidth: "1",
     });
     lowerBandSeries.setData(lowerBandData);
 
@@ -143,28 +139,22 @@ export const Graph = (props) => {
     };
   }, [props.temp]);
 
-
-  // Use custom hook to calculate relevant metrics to current data and interval
-  /*const param1Ref = useRef(null);
-  const param2Ref = useRef(null);
-  const {
-    rsi,
-    cumulativeSum,
-    intervalAverage,
-    intervalVariance,
-    aroonUp,
-    aroonDown,
-  } = useSegmentTree(pricesArray, param1Ref, param2Ref);*/
-
   return (
     <div className="bg-[rgba(0,20,50,1)] w-full justify-center text-center items-center">
       <div className="pt-5 items-center text-center justify-center flex flex-col gap-10">
-        <p className="text-white text-6xl font-semibold">Stock Performance Overview</p>
+        <p className="text-white text-6xl font-semibold">
+          Stock Performance Overview
+        </p>
         <div ref={chartContainerRef} className="h-[600px] w-[90%]" />
       </div>
 
-      <CustomRange pricesArray={pricesArray} timeIDS={timeIDS} interval={props.interval}/>
-
+      <CustomRange
+        pricesArray={pricesArray}
+        timeIDS={timeIDS}
+        interval={props.interval}
+        indexArr={props.indexArr}
+        setIndexArr={props.setIndexArr}
+      />
     </div>
   );
 };
