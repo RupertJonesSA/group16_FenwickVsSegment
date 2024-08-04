@@ -23,7 +23,7 @@ export const CustomRange = (props) => {
   const [monthRange2, setMonthRange2] = useState("");
 
   const timeArr = props.timeIDS;
-  const interval = props.interval;
+  const interval = "daily";
   const indexArr = props.indexArr;
   const setIndexArr = props.setIndexArr;
 
@@ -185,9 +185,9 @@ export const CustomRange = (props) => {
 
   const [isOn, setIsOn] = useState(false);
 
-  console.log(calcIndex(intradayRange1));
+  /*console.log(calcIndex(intradayRange1));
   console.log(calcIndex(intradayRange2));
-  console.log(indexArr);
+  console.log(indexArr);*/
 
   //Converts an array of timestamps into an array of dates in the format 'YYYY-MM-DD'.
   const daysAllowed = () => {

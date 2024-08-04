@@ -15,11 +15,11 @@ export const Graph = (props) => {
 
   useEffect(() => {
     //Scrolls to a specific position on the page with animation
-    animateScroll.scrollTo(850, {
+    /*animateScroll.scrollTo(850, {
       duration: 800,
       delay: 0,
       smooth: "easeInOutQuart",
-    });
+    });*/
 
     //Creates a chart with the specified options and adds a candlestick series to it.
     const chartOptions = {
@@ -37,10 +37,10 @@ export const Graph = (props) => {
       wickDownColor: "#ef5350",
     });
 
-    // let timeSeries = info["Time Series (5min)"];
+     let timeSeries = info["Time Series (Daily)"];
 
     //Assigns the appropriate time series data based on the interval specified in the props object
-    let timeSeries;
+    /*let timeSeries;
     if (props.interval === "intraday") {
       timeSeries = props.temp["Time Series (5min)"];
     } else if (props.interval === "daily") {
@@ -49,7 +49,7 @@ export const Graph = (props) => {
       timeSeries = props.temp["Weekly Time Series"];
     } else if (props.interval === "monthly") {
       timeSeries = props.temp["Monthly Time Series"];
-    }
+    }*/
 
     //Transforms the time series data object into an array of objects with parsed float values and converted time format.
     const transformedData = Object.keys(timeSeries).map((key) => {
@@ -72,9 +72,9 @@ export const Graph = (props) => {
     const data = transformedData.sort((a, b) => a.time - b.time);
 
     const closingData = data.map((d) => d.close);
+    props.setClosingData(closingData);
     setTimeIDS(data.map((d) => d.time));
 
-    console.log(timeIDS);
 
     // This type of array is necessary in order to allocate bytes into memory and provide the C++
     // code with necessary memory access. (MAKE SURE TO ALLOCATE 8 BYTES PER ELEMENT)
@@ -137,6 +137,7 @@ export const Graph = (props) => {
     return () => {
       chart.remove();
     };
+
   }, [props.temp]);
 
   return (

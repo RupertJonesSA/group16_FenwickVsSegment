@@ -8,7 +8,7 @@ import Select from "react-select";
 export const Form = (props) => {
   //Manages the state of URL, apiKey, selectedOption1, and selectedOption2 using React hooks.
   const [URL, setURL] = useState("");
-  const apiKey = "KV4FLOY71WHDYJ81";
+  const apiKey = "KL2D3BYFRWKSUUHF";
 
   const [selectedOption1, setSelectedOption1] = useState(null);
   const [selectedOption2, setSelectedOption2] = useState(null);
@@ -97,7 +97,7 @@ export const Form = (props) => {
   ];
 
 
-  console.log(errors);
+  //console.log(errors);
 
   return (
     <form
@@ -153,7 +153,6 @@ export const Form = (props) => {
         </div>
       </div>
 
-      {console.log(selectedOption1?.value)}
 
       <div className="text-center">
         <button

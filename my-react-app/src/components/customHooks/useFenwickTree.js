@@ -32,7 +32,7 @@ const useFenwickTree = (pricesArray, param1, param2) => {
         instance[methodName](...args);
       }, 1000);
     }
-    console.log(totalTime);
+
     const averageTime = totalTime / numRuns;
     return averageTime;
   };
@@ -69,6 +69,7 @@ const useFenwickTree = (pricesArray, param1, param2) => {
           from,
           to,
         ]);
+        console.log(emaTime);
 
         const computedKurtosis = fenwickTree
           .interval_kurtosis(from, to)

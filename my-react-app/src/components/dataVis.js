@@ -15,6 +15,8 @@ import useFenwickTree from "./customHooks/useFenwickTree";
 export const DataVis = (props) => {
   const [fenwickTimeTable, setFenwickTimeTable] = useState([]);
   const [segmentTimeTable, setSegmentTimeTable] = useState([]);
+  const [num, setNum] = useState(0);
+
 
   //Registers the provided components with Chart.js
   ChartJS.register(
@@ -25,8 +27,6 @@ export const DataVis = (props) => {
     Tooltip,
     Legend,
   );
-  console.log(segmentTimeTable);
-  console.log(fenwickTimeTable);
   //Data object containing labels and datasets for a chart.
   const data = {
     labels: [
@@ -78,17 +78,6 @@ export const DataVis = (props) => {
   };
 
   const {
-    intervalEMA,
-    intervalKurtosis,
-    cumulativeSum,
-    intervalAverage,
-    intervalVariance,
-    intervalStandardDeviation,
-    aroonUp,
-    aroonDown,
-  } = useSegmentTree(props.dataArray, props.indexArr[0], props.indexArr[1]);
-
-  const {
     fintervalEMA,
     fintervalKurtosis,
     fcumulativeSum,
@@ -98,6 +87,17 @@ export const DataVis = (props) => {
     faroonUp,
     faroonDown,
   } = useFenwickTree(props.dataArray, props.indexArr[0], props.indexArr[1]);
+
+  const {
+    intervalEMA,
+    intervalKurtosis,
+    cumulativeSum,
+    intervalAverage,
+    intervalVariance,
+    intervalStandardDeviation,
+    aroonUp,
+    aroonDown,
+  } = useSegmentTree(props.dataArray, props.indexArr[0], props.indexArr[1]);
 
   // Update execution display data
   useEffect(() => {
@@ -112,6 +112,9 @@ export const DataVis = (props) => {
       faroonDown[1],
     ]);
 
+    //console.log(fenwickTimeTable);
+    console.log(fcumulativeSum[1])
+
     setSegmentTimeTable([
       cumulativeSum[1],
       intervalAverage[1],
@@ -122,44 +125,46 @@ export const DataVis = (props) => {
       aroonUp[1],
       aroonDown[1],
     ]);
-  }, [props.indexArr[0], props.indexArr[1], props.dataArray]);
+    //console.log(props.indexArr);
+
+  }, [props.indexArr[0], props.indexArr[1], props.dataArray, segmentTimeTable, fenwickTimeTable]);
 
   return (
     <div className="bg-gray-200 w-full flex">
       <div className=" w-[41%] h-[780px] flex flex-row flex-wrap h-[800px] justify-around gap-4 text-gray-400 text-center text-2xl font-semibold mt-5 ml-2">
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Cumulative Sum
-          <p className="text-black text-3xl pt-2">${cumulativeSum[0]} </p>
+          <p className="text-black text-3xl pt-2">${fcumulativeSum[0]} </p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Interval Average
-          <p className="text-black text-3xl pt-2">${intervalAverage[0]}</p>
+          <p className="text-black text-3xl pt-2">${fintervalAverage[0]}</p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Interval Variance
-          <p className="text-black text-3xl pt-2">${intervalVariance[0]}</p>
+          <p className="text-black text-3xl pt-2">${fintervalVariance[0]}</p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
-          Interval Standard Deviation
+          Interval STD Deviation
           <p className="text-black text-3xl pt-2">
-            ${intervalStandardDeviation[0]}
+            ${fintervalStandardDeviation[0]}
           </p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Interval EMA
-          <p className="text-black text-3xl pt-2">${intervalEMA[0]}</p>
+          <p className="text-black text-3xl pt-2">${fintervalEMA[0]}</p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Interval Kurtosis
-          <p className="text-black text-3xl pt-2">${intervalKurtosis[0]}</p>
+          <p className="text-black text-3xl pt-2">${fintervalKurtosis[0]}</p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Aroon up
-          <p className="text-black text-3xl pt-2">${aroonUp[0]}</p>
+          <p className="text-black text-3xl pt-2">${faroonUp[0]}</p>
         </div>
         <div className="bg-[white] w-72 h-28 rounded-xl flex flex-col justify-center shadow-2xl">
           Aroon down
-          <p className="text-black text-3xl pt-2">${aroonDown[0]}</p>
+          <p className="text-black text-3xl pt-2">${faroonDown[0]}</p>
         </div>
       </div>
       <div className="w-[58%] h-[780px] mr-3 ml-1">
