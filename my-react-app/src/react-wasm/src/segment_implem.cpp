@@ -1,3 +1,7 @@
+/*
+ * Segment Tree implementation inspired by this CodeForces blog -> https://codeforces.com/blog/entry/18051
+*/
+
 #include <vector>
 #include <string>
 #include <algorithm>
