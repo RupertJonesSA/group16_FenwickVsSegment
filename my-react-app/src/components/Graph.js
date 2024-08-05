@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { LineStyle, createChart } from "lightweight-charts";
 import info from "./data.json";
@@ -37,7 +38,7 @@ export const Graph = (props) => {
       wickDownColor: "#ef5350",
     });
 
-     //let timeSeries = info["Time Series (5min)"];
+    //let timeSeries = info["Monthly Time Series"];
 
     //Assigns the appropriate time series data based on the interval specified in the props object
     let timeSeries;
@@ -72,9 +73,9 @@ export const Graph = (props) => {
     const data = transformedData.sort((a, b) => a.time - b.time);
 
     const closingData = data.map((d) => d.close);
-    props.setClosingData(closingData);
     setTimeIDS(data.map((d) => d.time));
 
+    console.log(timeIDS);
 
     // This type of array is necessary in order to allocate bytes into memory and provide the C++
     // code with necessary memory access. (MAKE SURE TO ALLOCATE 8 BYTES PER ELEMENT)
@@ -83,6 +84,7 @@ export const Graph = (props) => {
       flt64Data[i] = closingData[i];
     }
     props.setDataArray(flt64Data);
+    props.setIndexArr([0, closingData.length-1]);
 
     //Calculates Bollinger Bands based on the given period, closing data, and standard deviation.
     const period = 20;
@@ -137,7 +139,6 @@ export const Graph = (props) => {
     return () => {
       chart.remove();
     };
-
   }, [props.temp]);
 
   return (

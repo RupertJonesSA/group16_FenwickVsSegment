@@ -7,7 +7,6 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { TextField } from "@mui/material";
 import dayjs from "dayjs";
 import { Grid } from "@mui/material";
-import { useValueWithTimezone } from "@mui/x-date-pickers/internals/hooks/useValueWithTimezone";
 
 export const CustomRange = (props) => {
   //Initializes state variables for daily, intraday, weekly, and monthly ranges.
@@ -23,6 +22,11 @@ export const CustomRange = (props) => {
   const [monthRange1, setMonthRange1] = useState("");
   const [monthRange2, setMonthRange2] = useState("");
 
+  const [lowerBoundDate, setLowerBoundDate] = useState(null);
+  const [upperBoundDate, setUpperBoundDate] = useState(null);
+
+  const [isLowerBoundValid, setIsLowerBoundValid] = useState(true);
+  const [isUpperBoundValid, setIsUpperBoundValid] = useState(true);
 
   const timeArr = props.timeIDS;
   const interval = props.interval;
@@ -30,19 +34,41 @@ export const CustomRange = (props) => {
   const setIndexArr = props.setIndexArr;
 
   //Calculates the minimum date from the given timeArr and returns it in a specific format.
-  const calcMin = () => {
+  // Calculate the absolute minimum date from the timeArr
+  const calcAbsoluteMin = () => {
     const minDate = new Date(timeArr[0] * 1000);
     return JSON.stringify(minDate).substring(1, 11);
   };
 
-  //Calculates the maximum date from the given array of timestamps and returns it in a specific format.
-  const calcMax = () => {
+  // Calculate the absolute maximum date from the timeArr
+  const calcAbsoluteMax = () => {
     const maxDate = new Date(timeArr[timeArr.length - 1] * 1000);
     return JSON.stringify(maxDate).substring(1, 11);
   };
 
+  // Calculate the minimum date for the lower bound
+  const calcMinLowerBound = () => {
+    return calcAbsoluteMin();
+  };
+
+  // Calculate the maximum date for the lower bound
+  const calcMaxLowerBound = () => {
+    return upperBoundDate ? upperBoundDate : calcAbsoluteMax();
+  };
+
+  // Calculate the minimum date for the upper bound
+  const calcMinUpperBound = () => {
+    return lowerBoundDate ? lowerBoundDate : calcAbsoluteMin();
+  };
+
+  // Calculate the maximum date for the upper bound
+  const calcMaxUpperBound = () => {
+    return calcAbsoluteMax();
+  };
+
+
   //Calculates the maximum monthly value based on the last element in the timeArr array.
-  const calcMaxMonthly = () => {
+  /*const calcMaxMonthly = () => {
     const maxDate = new Date(timeArr[timeArr.length - 1] * 1000);
     return JSON.stringify(maxDate).substring(1, 8);
   };
@@ -51,7 +77,7 @@ export const CustomRange = (props) => {
   const calcMinMonthly = () => {
     const mixDate = new Date(timeArr[0] * 1000);
     return JSON.stringify(mixDate).substring(1, 8);
-  };
+  };*/
 
   //Get the range of the week for a given date.
   /*const getWeekRange = (date) => {
@@ -81,6 +107,8 @@ export const CustomRange = (props) => {
   //Handles the date change based on the selected interval.
   //Updates the range based on the interval selected.
   const handleDateChange1 = (date) => {
+    setIsLowerBoundValid(date !== null);
+    setLowerBoundDate(date ? JSON.stringify(date.$d).substring(1, 11) : null);
     if (interval === "weekly") {
       setWeekRange1(JSON.stringify(date).substring(1, 11));
     } else if (interval === "monthly") {
@@ -95,6 +123,8 @@ export const CustomRange = (props) => {
   //Handles the date change based on the selected interval.
   //Updates the range based on the interval selected.
   const handleDateChange2 = (date) => {
+    setIsUpperBoundValid(date !== null);
+    setUpperBoundDate(date ? JSON.stringify(date.$d).substring(1, 11) : null);
     if (interval === "weekly") {
       setWeekRange2(JSON.stringify(date).substring(1, 11));
     } else if (interval === "monthly") {
@@ -108,29 +138,21 @@ export const CustomRange = (props) => {
 
   //Disable a specific time based on the view (hours or minutes).
   const disableTime = (dateTime, view) => {
-    const formattedDate = dateTime.format("YYYY-MM-DD");
-  
     if (view === "hours") {
-      const hasAvailableHour = availableTimeSlots[formattedDate]?.some(
-        (slot) => slot.hour === dateTime.hour()
+      return !availableTimeSlots[dateTime.format("YYYY-MM-DD")]?.some(
+        (slot) => slot.hour === dateTime.hour(),
       );
-      return !hasAvailableHour;
     }
-  
     if (view === "minutes") {
-      const currentHourSlots = availableTimeSlots[formattedDate]?.filter(
-        (slot) => slot.hour === dateTime.hour()
+      const currentHourSlots = availableTimeSlots[
+        dateTime.format("YYYY-MM-DD")
+      ]?.filter((slot) => slot.hour === dateTime.hour());
+      return !currentHourSlots?.some(
+        (slot) => slot.minute === dateTime.minute(),
       );
-  
-      const hasAvailableMinute = currentHourSlots?.some(
-        (slot) => slot.minute === dateTime.minute()
-      );
-      return !hasAvailableMinute;
     }
-  
     return false;
   };
-  
 
   //Calculates the index of a given range in the timeArr array.
   const calcIndex = (range) => {
@@ -140,8 +162,9 @@ export const CustomRange = (props) => {
         return i;
       }
     }
-    return -1;
+    return 0;
   };
+
 
   //Defines a custom style object for a form component with specific CSS properties.
   const style = {
@@ -210,7 +233,6 @@ export const CustomRange = (props) => {
 
   //Converts an array of timestamps into an object with date strings as keys and an array of hour and minute objects as values.
   const timeAllowed = () => {
-    const tempData = timeArr.map((i) => new Date(i * 1000));
     const options = {
       timeZone: 'America/New_York',
       year: 'numeric',
@@ -218,43 +240,44 @@ export const CustomRange = (props) => {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
       hour12: false
-  };
-
-    const convertDate = tempData.map((i) => (i).toLocaleString('en-US', options));
-    const dateStrings = convertDate.map((i) => JSON.stringify(i).substring(1,18));
-
-
+    };
+  
+    const formatter = new Intl.DateTimeFormat('en-US', options);
     const availableTimeSlots = {};
-
-  // Process each date string
-  dateStrings.forEach((dateString) => {
-    // Split the string into date and time components
-    const [datePart, timePart] = dateString.split(', ');
-
-    // Convert date from MM/DD/YYYY to YYYY-MM-DD
-    const [month, day, year] = datePart.split('/');
-    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-
-    // Convert time to hour and minute
-    const [hour, minute] = timePart.split(':').map(Number);
-
-    // Initialize the array for this date if it doesn't exist
-    if (!availableTimeSlots[formattedDate]) {
-      availableTimeSlots[formattedDate] = [];
-    }
-
-    // Add the time object to the array for this date
-    availableTimeSlots[formattedDate].push({ hour, minute });
-  });
+  
+    timeArr.forEach((epochTime) => {
+      const date = new Date(epochTime * 1000);
+      const [
+        { value: month }, ,
+        { value: day }, ,
+        { value: year }, ,
+        { value: hour }, ,
+        { value: minute }
+      ] = formatter.formatToParts(date);
+  
+      const formattedDate = `${year}-${month}-${day}`;
+  
+      if (!availableTimeSlots[formattedDate]) {
+        availableTimeSlots[formattedDate] = [];
+      }
+  
+      availableTimeSlots[formattedDate].push({
+        hour: parseInt(hour, 10),
+        minute: parseInt(minute, 10)
+      });
+    });
   
     return availableTimeSlots;
   };
 
-  const availableTimeSlots = timeAllowed();
+  const areBothDatesValid = () => {
+    return isLowerBoundValid && isUpperBoundValid;
+  };
 
-  //console.log(availableTimeSlots);
+
+
+  const availableTimeSlots = timeAllowed();
 
   return (
     <div>
@@ -281,8 +304,8 @@ export const CustomRange = (props) => {
                       label="Lower Bound"
                       sx={style}
                       onChange={handleDateChange1}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinLowerBound())}
+                      maxDate={dayjs(calcMaxLowerBound())}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
                           date.isSame(dayjs(availableDate), "day"),
@@ -293,8 +316,8 @@ export const CustomRange = (props) => {
                       label="Upper Bound"
                       sx={style}
                       onChange={handleDateChange2}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinLowerBound())}
+                      maxDate={dayjs(calcMaxLowerBound())}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
                           date.isSame(dayjs(availableDate), "day"),
@@ -308,8 +331,8 @@ export const CustomRange = (props) => {
                       label="Lower Bound"
                       onChange={handleDateChange1}
                       sx={style}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinLowerBound())}
+                      maxDate={dayjs(calcMaxLowerBound())}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
                           date.isSame(dayjs(availableDate), "day"),
@@ -320,8 +343,8 @@ export const CustomRange = (props) => {
                       label="Upper Bound"
                       onChange={handleDateChange2}
                       sx={style}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinLowerBound())}
+                      maxDate={dayjs(calcMaxLowerBound())}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
                           date.isSame(dayjs(availableDate), "day"),
@@ -339,8 +362,8 @@ export const CustomRange = (props) => {
                           format="YYYY-MM"
                           onChange={handleDateChange1}
                           sx={style}
-                          minDate={dayjs(calcMinMonthly())}
-                          maxDate={dayjs(calcMaxMonthly())}
+                          minDate={dayjs(calcMinLowerBound())}
+                        maxDate={dayjs(calcMaxLowerBound())}
                         />
                         <DatePicker
                           views={["year", "month"]}
@@ -348,8 +371,8 @@ export const CustomRange = (props) => {
                           format="YYYY-MM"
                           onChange={handleDateChange2}
                           sx={style}
-                          minDate={dayjs(calcMinMonthly())}
-                          maxDate={dayjs(calcMaxMonthly())}
+                          minDate={dayjs(calcMinUpperBound())}
+                        maxDate={dayjs(calcMaxUpperBound())}
                         />
                       </div>
                     </Grid>
@@ -360,8 +383,8 @@ export const CustomRange = (props) => {
                       label="Lower Bound"
                       sx={style}
                       onChange={handleDateChange1}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinLowerBound())}
+                      maxDate={dayjs(calcMaxLowerBound())}
                       shouldDisableTime={disableTime}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
@@ -373,8 +396,8 @@ export const CustomRange = (props) => {
                       label="Upper Bound"
                       sx={style}
                       onChange={handleDateChange2}
-                      minDate={dayjs(calcMin())}
-                      maxDate={dayjs(calcMax())}
+                      minDate={dayjs(calcMinUpperBound())}
+                      maxDate={dayjs(calcMaxUpperBound())}
                       shouldDisableTime={disableTime}
                       shouldDisableDate={(date) =>
                         !daysAllowed().some((availableDate) =>
@@ -392,11 +415,12 @@ export const CustomRange = (props) => {
             <button
               onClick={() => setIndexArr(handleSubmit)}
               className="font-normal bg-white text-gray-400 w-[200px] h-[50px] rounded-lg hover:text-black"
+              disabled={!areBothDatesValid()}
             >
               Calculate
             </button>
             <button
-              onClick={() => setIndexArr([0, timeArr.length - 1])}
+              onClick={() => {setIndexArr([0, timeArr.length-1])}}
               className="text-gray-400 text-sm underline hover:text-white"
             >
               Reset Bounds
