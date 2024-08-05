@@ -1,3 +1,22 @@
+/*
+Here's a list of the main libraries and technologies used in this React application:
+
+1. lightweight-charts (for creating the main stock chart)
+2. react-chartjs-2 and Chart.js (for creating the performance comparison bar chart)
+3. Axios (for making HTTP requests)
+4. Formik (for form management)
+5. Yup (for form validation)
+6. Material-UI (MUI) components (particularly for date pickers)
+7. Day.js (for date manipulation)
+8. Tailwind CSS (for styling)
+9. technicalindicators (for calculating Bollinger Bands)
+10. react-scroll (for smooth scrolling)
+11. path-browserify (for path operations in the browser)
+12. @mui/x-date-pickers (for advanced date picking components)
+13. react-select (for dropdown selection)
+
+*/
+
 import React, { useEffect, useRef, useState, createContext } from "react";
 import { createChart } from "lightweight-charts";
 import "./css/App.css";
@@ -10,6 +29,7 @@ import info from "./components/data.json";
 import "./css/background.css";
 import { initAnimation, initHeader, addListeners } from "./canvas";
 import { DataVis } from "./components/dataVis";
+
 
 function App() {
   //Initializes state variables for ticker, interval, isLoading, and temp using the useState hook.
